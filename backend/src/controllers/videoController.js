@@ -3,8 +3,8 @@ const express = require('express');
 const cors = require('cors');   
 
 let videos = [
-  { id: 1, title: 'First Video', url: '/uploads/video1.mp4', description: 'This is the first video' },
-  { id: 2, title: 'Second Video', url: '/uploads/video2.mp4', description: 'This is the second video' },
+  { id: 1, title: 'First Video', url: '/uploads/video1.mp4', description: 'This is the first video', likes: 25, dislikes: 2, views: 150 },
+  { id: 2, title: 'Second Video', url: '/uploads/video2.mp4', description: 'This is the second video', likes: 18, dislikes: 1, views: 89 },
 ];
 
 let comments = [
@@ -42,7 +42,10 @@ const downloadNewVideo = (req, res) => {
     id: videos.length + 1,
     title: req.body.title || `Видео ${videos.length + 1}`,
     url: `/uploads/${req.file.filename}`,
-    description: req.body.description || ''
+    description: req.body.description || '',
+    likes: 0,
+    dislikes: 0,
+    views: 0
   };
   videos.push(newVideo);
   res.status(201).json(newVideo);
@@ -65,4 +68,31 @@ const addComment = (req, res) => {
   res.status(201).json(newComment);
 };
 
-module.exports = { getAll, getOne, getPagedFiltered, downloadNewVideo, getComments, addComment };
+const likeVideo = (req, res) => {
+  const videoId = parseInt(req.params.id);
+  const video = videos.find(v => v.id === videoId);
+  if (!video) return res.status(404).json({ error: 'Видео не найдено' });
+  
+  video.likes = (video.likes || 0) + 1;
+  res.json({ likes: video.likes, dislikes: video.dislikes || 0 });
+};
+
+const dislikeVideo = (req, res) => {
+  const videoId = parseInt(req.params.id);
+  const video = videos.find(v => v.id === videoId);
+  if (!video) return res.status(404).json({ error: 'Видео не найдено' });
+  
+  video.dislikes = (video.dislikes || 0) + 1;
+  res.json({ likes: video.likes || 0, dislikes: video.dislikes });
+};
+
+const incrementViews = (req, res) => {
+  const videoId = parseInt(req.params.id);
+  const video = videos.find(v => v.id === videoId);
+  if (!video) return res.status(404).json({ error: 'Видео не найдено' });
+  
+  video.views = (video.views || 0) + 1;
+  res.json({ views: video.views });
+};
+
+module.exports = { getAll, getOne, getPagedFiltered, downloadNewVideo, getComments, addComment, likeVideo, dislikeVideo, incrementViews };

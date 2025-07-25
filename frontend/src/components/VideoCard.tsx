@@ -6,9 +6,18 @@ interface Video {
   title: string;
   url: string;
   description?: string;
+  views?: number;
+  likes?: number;
+  dislikes?: number;
 }
 
 export default function VideoCard({ video }: { video: Video }) {
+  const formatViews = (views: number) => {
+    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
+    if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
+    return views.toString();
+  };
+
   return (
     <div className="video-card">
       <Link to={`/video/${video.id}`}>
@@ -36,6 +45,9 @@ export default function VideoCard({ video }: { video: Video }) {
         </Link>
         <div className="video-description">
           {video.description || 'No description available'}
+        </div>
+        <div style={{ fontSize: '12px', color: '#606060', marginTop: '4px' }}>
+          {video.views ? `${formatViews(video.views)} views` : '0 views'}
         </div>
       </div>
     </div>

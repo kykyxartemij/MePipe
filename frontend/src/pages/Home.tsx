@@ -10,6 +10,9 @@ interface Video {
   title: string;
   url: string;
   description?: string;
+  views?: number;
+  likes?: number;
+  dislikes?: number;
 }
 
 export default function Home() {
