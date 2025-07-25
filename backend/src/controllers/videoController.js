@@ -3,8 +3,14 @@ const express = require('express');
 const cors = require('cors');   
 
 let videos = [
-  { id: 1, title: 'First Video', url: '/uploads/video1.mp4' },
-  { id: 2, title: 'Second Video', url: '/uploads/video2.mp4' },
+  { id: 1, title: 'First Video', url: '/uploads/video1.mp4', description: 'This is the first video' },
+  { id: 2, title: 'Second Video', url: '/uploads/video2.mp4', description: 'This is the second video' },
+];
+
+let comments = [
+  { id: 1, videoId: 1, text: 'Great video!' },
+  { id: 2, videoId: 1, text: 'Thanks for sharing!' },
+  { id: 3, videoId: 2, text: 'Nice content!' },
 ];
 
 const getAll = (req, res) => {
@@ -35,10 +41,28 @@ const downloadNewVideo = (req, res) => {
   const newVideo = {
     id: videos.length + 1,
     title: req.body.title || `Видео ${videos.length + 1}`,
-    url: `/uploads/${req.file.filename}`
+    url: `/uploads/${req.file.filename}`,
+    description: req.body.description || ''
   };
   videos.push(newVideo);
   res.status(201).json(newVideo);
 };
 
-module.exports = { getAll, getOne, getPagedFiltered, downloadNewVideo };
+const getComments = (req, res) => {
+  const videoId = parseInt(req.params.id);
+  const videoComments = comments.filter(c => c.videoId === videoId);
+  res.json(videoComments);
+};
+
+const addComment = (req, res) => {
+  const videoId = parseInt(req.params.id);
+  const newComment = {
+    id: comments.length + 1,
+    videoId: videoId,
+    text: req.body.text
+  };
+  comments.push(newComment);
+  res.status(201).json(newComment);
+};
+
+module.exports = { getAll, getOne, getPagedFiltered, downloadNewVideo, getComments, addComment };

@@ -10,12 +10,34 @@ interface Video {
 
 export default function VideoCard({ video }: { video: Video }) {
   return (
-    <div style={{ border: '1px solid #ccc', margin: 8, padding: 8 }}>
+    <div className="video-card">
       <Link to={`/video/${video.id}`}>
-        <h3>{video.title}</h3>
+        <div className="video-thumbnail-container">
+          {/* For now, we'll show a placeholder thumbnail since we don't have actual video thumbnails */}
+          <div style={{ 
+            width: '100%', 
+            height: '100%', 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '18px',
+            fontWeight: '500'
+          }}>
+            📹
+          </div>
+          <div className="video-duration">0:00</div>
+        </div>
       </Link>
-      <video src={video.url} controls width={320} />
-      <p>{video.description}</p>
+      <div className="video-info">
+        <Link to={`/video/${video.id}`} className="video-title">
+          {video.title}
+        </Link>
+        <div className="video-description">
+          {video.description || 'No description available'}
+        </div>
+      </div>
     </div>
   );
 }
