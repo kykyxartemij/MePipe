@@ -44,6 +44,8 @@ src/
 │   ├── UploadForm.tsx
 │   ├── CommentSection.tsx
 │   └── GenrePopover.tsx
+├── providers/
+│   └── QueryProvider.tsx   — React Query client + devtools
 └── lib/
     └── prisma.ts           — Prisma Client singleton
 ```
