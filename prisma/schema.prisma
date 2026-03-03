@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Genre {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  name     String   @unique
+  videoIds String[] @db.ObjectId
+  videos   Video[]  @relation(fields: [videoIds], references: [id])
+}
+
+model Video {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String    @default("")
+  thumbnail   String?
+  videoUrl    String
+  duration    Int       @default(0)
+  publishedAt DateTime  @default(now())
+  ageRating   AgeRating @default(G_0)
+  genreIds    String[]  @db.ObjectId
+  genres      Genre[]   @relation(fields: [genreIds], references: [id])
+  comments    Comment[]
+  likes       Int       @default(0)
+  dislikes    Int       @default(0)
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  videoId   String   @db.ObjectId
+  video     Video    @relation(fields: [videoId], references: [id])
+  text      String
+  createdAt DateTime @default(now())
+}
+
+enum AgeRating {
+  G_0
+  G_12
+  G_16
+  G_18
+}
