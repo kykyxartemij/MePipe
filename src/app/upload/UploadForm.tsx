@@ -7,6 +7,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useQuery } from "@tanstack/react-query";
 import * as yup from "yup";
 import GenrePopover from "./GenrePopover";
+import ArtInput from "@/components/ui/ArtInput";
+import ArtTextarea from "@/components/ui/ArtTextarea";
 
 interface Genre {
   id: string;
@@ -77,37 +79,32 @@ export default function UploadForm() {
       style={{ display: "flex", flexDirection: "column", gap: 12 }}
     >
       <div>
-        <input
+        <ArtInput
+          icon={{ name: "Search", size: 18 }}
+          clearable
           type="text"
           placeholder="Title"
+          helperText={errors.title?.message}
           {...register("title")}
         />
-        {errors.title && (
-          <p style={{ color: "red", fontSize: "0.8rem", marginTop: 4 }}>
-            {errors.title.message}
-          </p>
-        )}
       </div>
 
       <div>
-        <textarea
+        <ArtTextarea
           placeholder="Description (optional)"
           rows={3}
+          helperText={errors.description?.message}
           {...register("description")}
         />
       </div>
 
       <div>
-        <input
+        <ArtInput
           type="file"
           accept="video/*"
+          helperText={errors.file?.message}
           {...register("file")}
         />
-        {errors.file && (
-          <p style={{ color: "red", fontSize: "0.8rem", marginTop: 4 }}>
-            {errors.file.message}
-          </p>
-        )}
       </div>
 
       <button type="button" onClick={() => setShowGenres(true)}>

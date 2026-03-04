@@ -1,10 +1,16 @@
-import VideoGrid from "@/components/VideoGrid";
+import VideoGrid from "../components/VideoGrid";
 
-export default function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ freeText?: string }>;
+}) {
+  const { freeText } = await searchParams;
+
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>Videos</h2>
-      <VideoGrid />
+      {freeText && <h2 style={{ marginBottom: 16 }}>Results for “{freeText}”</h2>}
+      <VideoGrid search={freeText ?? ""} />
     </div>
   );
 }

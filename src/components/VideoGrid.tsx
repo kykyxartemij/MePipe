@@ -20,19 +20,18 @@ interface VideosResponse {
   pageSize: number;
 }
 
-async function fetchVideos(page: number, title: string): Promise<VideosResponse> {
-  const res = await fetch(`/api/videos?page=${page}&pageSize=${PAGE_SIZE}&title=${encodeURIComponent(title)}`);
+async function fetchVideos(page: number, freeText: string): Promise<VideosResponse> {
+  const res = await fetch(`/api/videos?page=${page}&pageSize=${PAGE_SIZE}&freeText=${encodeURIComponent(freeText)}`);
   if (!res.ok) throw new Error("Failed to fetch videos");
   return res.json();
 }
 
-export default function VideoGrid() {
+export default function VideoGrid({ search = "" }: { search?: string }) {
   const [page, setPage] = useState(1);
-  const [title, setTitle] = useState("");
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["videos", page, title],
-    queryFn: () => fetchVideos(page, title),
+    queryKey: ["videos", page, search],
+    queryFn: () => fetchVideos(page, search),
     placeholderData: (prev) => prev,
   });
 
@@ -41,17 +40,6 @@ export default function VideoGrid() {
 
   return (
     <>
-      <input
-        type="text"
-        placeholder="Search by title..."
-        value={title}
-        onChange={(e) => {
-          setTitle(e.target.value);
-          setPage(1);
-        }}
-        style={{ marginBottom: 16, maxWidth: 400 }}
-      />
-
       {isLoading && <p style={{ color: "var(--text-muted)", marginTop: 16 }}>Loading...</p>}
       {isError && <p style={{ color: "red", marginTop: 16 }}>Failed to load videos.</p>}
 

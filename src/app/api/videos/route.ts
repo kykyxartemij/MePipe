@@ -1,17 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizeText } from "@/lib/freeText";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+
+/**
+ * Build a `where` clause that matches videos by title OR genre name.
+ * Returns `{}` when freeText is empty.
+ */
+async function buildFreeTextWhere(freeText: string) {
+  const q = normalizeText(freeText);
+  if (!q) return {};
+
+  const matchingGenres = await prisma.genre.findMany({
+    where: { name: { contains: q, mode: "insensitive" } },
+    select: { id: true },
+  });
+  const genreIds = matchingGenres.map((g) => g.id);
+
+  return {
+    OR: [
+      { title: { contains: q, mode: "insensitive" as const } },
+      ...(genreIds.length > 0
+        ? [{ genreIds: { hasSome: genreIds } }]
+        : []),
+    ],
+  };
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const page = Number(searchParams.get("page") ?? 1);
   const pageSize = Number(searchParams.get("pageSize") ?? 20);
-  const title = searchParams.get("title") ?? "";
+  const freeText = searchParams.get("freeText") ?? "";
 
-  const where = title
-    ? { title: { contains: title, mode: "insensitive" as const } }
-    : {};
+  const where = await buildFreeTextWhere(freeText);
 
   const [videos, total] = await Promise.all([
     prisma.video.findMany({

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import CommentSection from "@/components/CommentSection";
+import CommentSection from "./CommentSection";
 
 export default async function Page({
   params,

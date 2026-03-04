@@ -8,14 +8,14 @@ datasource db {
 }
 
 model Genre {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  id       String   @id @default(uuid()) @map("_id")
   name     String   @unique
-  videoIds String[] @db.ObjectId
+  videoIds String[]
   videos   Video[]  @relation(fields: [videoIds], references: [id])
 }
 
 model Video {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid()) @map("_id")
   title       String
   description String    @default("")
   thumbnail   String?
@@ -23,7 +23,7 @@ model Video {
   duration    Int       @default(0)
   publishedAt DateTime  @default(now())
   ageRating   AgeRating @default(G_0)
-  genreIds    String[]  @db.ObjectId
+  genreIds    String[]
   genres      Genre[]   @relation(fields: [genreIds], references: [id])
   comments    Comment[]
   likes       Int       @default(0)
@@ -31,8 +31,8 @@ model Video {
 }
 
 model Comment {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  videoId   String   @db.ObjectId
+  id        String   @id @default(uuid()) @map("_id")
+  videoId   String
   video     Video    @relation(fields: [videoId], references: [id])
   text      String
   createdAt DateTime @default(now())
