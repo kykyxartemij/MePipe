@@ -2,14 +2,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { CommentCreateValidator, Comment } from "@/models/comment";
+import { CommentCreateValidator, Comment } from "@/models/comment.models";
 import { parseIdFromRoute } from "@/models";
-import { PaginatedResponse, parsePaginationFromUrl } from "@/models/response";
+import { PaginatedResponse, parsePaginationFromUrl } from "@/models/paginated-responce.model";
 import { handleApiError } from "@/lib/errorHandler";
 
 // ==== GET ====
-export const getPagedCommentsByVideoIdUrl = (videoId: string, page: number, pageSize: number) =>
-  `/api/videos/${videoId}/comments?page=${page}&pageSize=${pageSize}`;
 
 export async function getPagedCommentsByVideoId(
   request: NextRequest,
@@ -44,9 +42,6 @@ export async function getPagedCommentsByVideoId(
 }
 
 // NOTE: Not in use
-export const getCommentByIdUrl = (commentId: string) =>
-  `/api/comments/${commentId}`;
-
 export async function GetCommentById(
   request: NextRequest,
   params: Promise<{ id: string }>
@@ -65,8 +60,6 @@ export async function GetCommentById(
 
 
 // ==== POST ====
-export const createCommentUrl = (videoId: string) =>
-  `/api/videos/${videoId}/comments`;
 
 export async function createComment(
   request: NextRequest,

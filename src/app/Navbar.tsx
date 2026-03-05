@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import * as ArtIcon from "@/components/ui/ArtIcon";
-import SearchField from "../components/SearchField";
+import SearchField from "./SearchField";
 
 function NavbarInner() {
   const searchParams = useSearchParams();

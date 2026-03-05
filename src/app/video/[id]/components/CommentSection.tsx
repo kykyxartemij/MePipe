@@ -2,7 +2,7 @@
 
 import { useState, useCallback, type CSSProperties } from "react";
 
-import type { Comment } from "@/models/comment";
+import type { Comment } from "@/models/comment.models";
 
 const PAGE_SIZE = 10;
 

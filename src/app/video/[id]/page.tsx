@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import CommentSection from "./CommentSection";
-import VideoPlayer from "@/components/VideoPlayer";
-import RelatedVideos from "@/components/RelatedVideos";
+import CommentSection from "./components/CommentSection";
+import VideoPlayer from "./components/VideoPlayer";
+import SimilarVideos from "./components/SimilarVideos";
 
 export default async function Page({
   params,
@@ -17,15 +17,15 @@ export default async function Page({
 
   if (!video) notFound();
 
-  const [comments, genres] = await Promise.all([
-    video.commentIds.length > 0
-      ? prisma.comment.findMany({
-          where: { id: { in: video.commentIds.slice(0, 10) } },
-        })
-      : Promise.resolve([]),
+  const [comments, genres, totalComments] = await Promise.all([
+    prisma.comment.findMany({
+      where: { videoId: id },
+      take: 10,
+      orderBy: { createdAt: "desc" },
+    }),
     prisma.genre.findMany({ where: { id: { in: video.genreIds } } }),
+    prisma.comment.count({ where: { videoId: id } }),
   ]);
-  const totalComments = video.commentIds.length;
 
   return (
     <>
@@ -57,7 +57,7 @@ export default async function Page({
           <CommentSection videoId={id} initialComments={comments} totalComments={totalComments} />
         </div>
         <aside className="video-sidebar">
-          <RelatedVideos videoId={id} />
+          <SimilarVideos videoId={id} />
         </aside>
       </div>
     </>

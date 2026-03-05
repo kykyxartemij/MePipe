@@ -2,15 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeText } from "@/lib/freeText";
 import { parseIdFromRoute } from "@/models";
-import { parsePaginationFromUrl } from "@/models/response";
+import { parsePaginationFromUrl } from "@/models/paginated-responce.model";
 import { handleApiError } from "@/lib/errorHandler";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 
 // ==== GET ALL (PAGED) ====
-export const getPagedVideosUrl = (page: number, pageSize: number, freeText?: string) =>
-  `/api/videos?page=${page}&pageSize=${pageSize}${freeText ? `&freeText=${freeText}` : ''}`;
 
+// TODO: Make it better
 async function buildFreeTextWhere(freeText: string) {
   const q = normalizeText(freeText);
   if (!q) return {};
@@ -54,8 +53,6 @@ export async function getPagedVideos(request: NextRequest) {
 }
 
 // ==== GET BY ID ====
-export const getVideoByIdUrl = (id: string) =>
-  `/api/videos/${id}`;
 
 export async function getVideoById(params: Promise<{ id: string }>) {
   try {
@@ -71,10 +68,8 @@ export async function getVideoById(params: Promise<{ id: string }>) {
 }
 
 // ==== GET RELATED ====
-export const getRelatedVideosUrl = (videoId: string, page: number, pageSize: number) =>
-  `/api/videos/${videoId}/related?rpage=${page}&rpagesize=${pageSize}`;
 
-export async function getRelatedVideos(
+export async function getSimilarVideos(
   request: NextRequest,
   params: Promise<{ id: string }>
 ) {
@@ -88,8 +83,7 @@ export async function getRelatedVideos(
     if (!video) return NextResponse.json({ error: "Video not found" }, { status: 404 });
 
     const { searchParams } = request.nextUrl;
-    const page = Number(searchParams.get("rpage") ?? 1);
-    const pageSize = Number(searchParams.get("rpagesize") ?? 10);
+    const { page, pageSize } = await parsePaginationFromUrl(searchParams);
 
     const related = await prisma.video.findMany({
       where: {
@@ -110,8 +104,6 @@ export async function getRelatedVideos(
 }
 
 // ==== GET SUGGESTIONS ====
-export const getSuggestionsUrl = (freeText: string) =>
-  `/api/videos/suggestions?freeText=${freeText}`;
 
 const MAX_SUGGESTIONS = 8;
 
@@ -146,7 +138,6 @@ export async function getSuggestions(request: NextRequest) {
 }
 
 // ==== CREATE ====
-export const createVideoUrl = () => `/api/videos`;
 
 export async function createVideo(request: NextRequest) {
   try {

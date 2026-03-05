@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type CSSProperties } from "react";
-import ArtIcon from "./ui/ArtIcon";
+import ArtIcon from "@/components/ui/ArtIcon";
 
 /* ─── helpers ─── */
 function fmt(secs: number) {

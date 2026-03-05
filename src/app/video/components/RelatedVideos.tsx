@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useSimilarVideos } from "../hooks/useVideoHooks";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
-import type { VideoLight } from "@/models/video";
+import type { VideoLight } from "@/models/video.models";
 interface Video {
   id: string;
   title: string;
@@ -71,21 +72,14 @@ function SkeletonCard() {
 }
 
 export default function RelatedVideos({ videoId }: { videoId: string }) {
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useSimilarVideos(videoId);
 
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/videos/${videoId}/related?limit=15`)
-      .then((r) => r.json())
-      .then((data) => { setVideos(data); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [videoId]);
+  const videos = data ?? [];
 
   return (
     <div>
       <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
-      {loading
+      {isLoading
         ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
         : videos.map((v) => (
             <Link key={v.id} href={`/video/${v.id}`} style={cardStyle}>
@@ -101,7 +95,7 @@ export default function RelatedVideos({ videoId }: { videoId: string }) {
               </div>
             </Link>
           ))}
-      {!loading && videos.length === 0 && (
+      {!isLoading && videos.length === 0 && (
         <p style={{ color: "#666", fontSize: 14 }}>No related videos found.</p>
       )}
     </div>

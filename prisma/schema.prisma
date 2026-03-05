@@ -8,32 +8,34 @@ datasource db {
 }
 
 model Genre {
-  id   String @id @default(uuid()) @map("_id")
-  name String @unique
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  name     String   @unique
+  videoIds String[] @db.ObjectId
+  videos   Video[]  @relation(fields: [videoIds], references: [id])
 }
 
 model Video {
-  id          String    @id @default(uuid()) @map("_id")
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String    @default("")
   thumbnail   String?
   videoUrl    String
+  duration    Int       @default(0)
   publishedAt DateTime  @default(now())
   ageRating   AgeRating @default(G_0)
-
-  // Relations
-  genreIds    String[]
+  genreIds    String[]  @db.ObjectId
   genres      Genre[]   @relation(fields: [genreIds], references: [id])
+  comments    Comment[]
+  likes       Int       @default(0)
+  dislikes    Int       @default(0)
 }
 
 model Comment {
-  id        String   @id @default(uuid()) @map("_id")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  videoId   String   @db.ObjectId
+  video     Video    @relation(fields: [videoId], references: [id])
   text      String
   createdAt DateTime @default(now())
-
-  // Relations
-  videoId   String
-  // No need in Prisma's relation, since no enrichment is needed. 
 }
 
 enum AgeRating {

@@ -10,7 +10,7 @@ import GenrePopover from "./GenrePopover";
 import ArtInput from "@/components/ui/ArtInput";
 import ArtTextarea from "@/components/ui/ArtTextarea";
 
-import type { Genre } from "@/models/genre";
+import type { Genre } from "@/models/genre.models";
 
 const schema = yup.object({
   title: yup
