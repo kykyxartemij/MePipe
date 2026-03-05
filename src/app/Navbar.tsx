@@ -13,7 +13,8 @@ function NavbarInner() {
   return (
     <nav className="navbar">
       {/* Left — logo */}
-      <Link href="/" className="navbar-logo">
+      <Link href="/" className="navbar-logo" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <ArtIcon.ArtIcon name="MePipeLogo" size={28} />
         MePipe
       </Link>
 

@@ -1,9 +1,6 @@
 "use client";
 
-interface Genre {
-  id: string;
-  name: string;
-}
+import type { Genre } from "@/models/genre";
 
 export default function GenrePopover({
   open,

@@ -20,10 +20,12 @@ interface ArtComboBoxProps {
 	icon?: ArtIconProps;
 	clearable?: boolean;
 	debounceMs?: number;
+	noOptionsMessage?: string;
+	isLoading?: boolean;
 }
 
 const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) => {
-	const { options, value, onChange, onDebouncedChange, onSubmit, placeholder, icon, clearable, debounceMs } = props;
+	const { options, value, onChange, onDebouncedChange, onSubmit, placeholder, icon, clearable, debounceMs, noOptionsMessage, isLoading } = props;
 
 	const [open, setOpen] = useState(false);
 	const [activeIdx, setActiveIdx] = useState(-1);
@@ -124,6 +126,13 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
 							{opt.label}
 						</li>
 					))}
+				</ul>
+			)}
+			{open && !hasOptions && value.trim().length > 0 && (
+				<ul className="art-combobox-list">
+					<li className="art-combobox-option" style={{ color: "#888", cursor: "default" }}>
+						{isLoading ? "Loading..." : noOptionsMessage}
+					</li>
 				</ul>
 			)}
 		</div>

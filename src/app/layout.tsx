@@ -18,7 +18,7 @@ export default function RootLayout({
       <body>
         <QueryProvider>
           <Navbar />
-          <main style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem" }}>
+          <main style={{ maxWidth: "85%", margin: "0 auto", padding: "1.5rem" }}>
             {children}
           </main>
         </QueryProvider>

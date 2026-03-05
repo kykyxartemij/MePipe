@@ -1,3 +1,6 @@
+
+// NOTE: not used
+
 /**
  * Shared utilities for free-text search / filtering.
  *

@@ -1,20 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest } from "next/server";
+import { getVideoById } from "@/services/video.service";
 
 export async function GET(
-  _req: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const video = await prisma.video.findUnique({
-    where: { id },
-    include: { genres: true },
-  });
-
-  if (!video) {
-    return NextResponse.json({ error: "Video not found" }, { status: 404 });
-  }
-  return NextResponse.json(video);
+  return getVideoById(params);
 }
 
 
