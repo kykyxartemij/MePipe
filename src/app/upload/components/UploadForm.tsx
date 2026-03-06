@@ -4,13 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useQuery } from "@tanstack/react-query";
 import * as yup from "yup";
 import GenrePopover from "./GenrePopover";
 import ArtInput from "@/components/ui/ArtInput";
 import ArtTextarea from "@/components/ui/ArtTextarea";
-
-import type { Genre } from "@/models/genre.models";
+import { useGenres } from "@/hooks/useGenres";
+import { useCreateVideo } from "@/app/video/hooks/useVideoHooks";
 
 const schema = yup.object({
   title: yup
@@ -38,12 +37,9 @@ export default function UploadForm() {
   const router = useRouter();
   const [genres, setGenres] = useState<string[]>([]);
   const [showGenres, setShowGenres] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
-  const { data: allGenres = [] } = useQuery<Genre[]>({
-    queryKey: ["genres"],
-    queryFn: () => fetch("/api/genres").then((r) => r.json()),
-  });
+  const { data: allGenres = [] } = useGenres();
+  const createVideo = useCreateVideo();
 
   const {
     register,
@@ -55,19 +51,19 @@ export default function UploadForm() {
   });
 
   const onSubmit = async (values: FormValues) => {
-    setUploading(true);
     const formData = new FormData();
     formData.append("title", values.title);
     formData.append("description", values.description ?? "");
     formData.append("video", values.file[0]);
     formData.append("genres", JSON.stringify(genres));
 
-    const res = await fetch("/api/videos", { method: "POST", body: formData });
-    const video = await res.json();
-    setUploading(false);
-    reset();
-    setGenres([]);
-    router.push(`/video/${video.id}`);
+    createVideo.mutate(formData, {
+      onSuccess: (video) => {
+        reset();
+        setGenres([]);
+        router.push(`/video/${video.id}`);
+      },
+    });
   };
 
   return (
@@ -116,8 +112,8 @@ export default function UploadForm() {
         onClose={() => setShowGenres(false)}
       />
 
-      <button type="submit" disabled={uploading}>
-        {uploading ? "Uploading..." : "Upload"}
+      <button type="submit" disabled={createVideo.isPending}>
+        {createVideo.isPending ? "Uploading..." : "Upload"}
       </button>
     </form>
   );

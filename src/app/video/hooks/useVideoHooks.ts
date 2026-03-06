@@ -1,18 +1,13 @@
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API } from "@/lib/apiUrl";
 import { queryKeys } from "@/lib/queryKeys";
-import { VideoLight } from "@/models/video.models";
+import type { VideoLight } from "@/models/video.models";
+import type { PaginatedResponse } from "@/models/paginated-response.model";
 
-interface PagedVideosResponse {
-  videos: VideoLight[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
+const PAGE_SIZE = 100;
+const SIMILAR_PAGE_SIZE = 75;
 
-const PAGE_SIZE = 20;
-
-async function fetchPagedVideos(page: number, freeText: string): Promise<PagedVideosResponse> {
+async function fetchPagedVideos(page: number, freeText: string): Promise<PaginatedResponse<VideoLight>> {
   const res = await fetch(API.video.paged(page, PAGE_SIZE, freeText));
   if (!res.ok) throw new Error("Failed to fetch videos");
   return res.json();
@@ -23,19 +18,16 @@ export const usePagedVideos = (search = "") => {
     queryKey: queryKeys.videos.paged(search),
     queryFn: ({ pageParam }) => fetchPagedVideos(pageParam, search),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const loaded = lastPage.page * lastPage.pageSize;
-      return loaded < lastPage.total ? lastPage.page + 1 : undefined;
-    },
+    getNextPageParam: (lastPage) =>
+      lastPage.data.length < lastPage.pageSize ? undefined : lastPage.page + 1,
   });
 };
 
-// Rename to SimilarVideos
 export const useSimilarVideos = (videoId: string) => {
   return useQuery({
-    queryKey: queryKeys.videos.similar(videoId, 1, 15),
+    queryKey: queryKeys.videos.similar(videoId, 1, SIMILAR_PAGE_SIZE),
     queryFn: async () => {
-      const res = await fetch(API.video.similar(videoId, 1, 15));
+      const res = await fetch(API.video.similar(videoId, 1, SIMILAR_PAGE_SIZE));
       if (!res.ok) throw new Error("Failed to fetch similar videos");
       return res.json() as Promise<VideoLight[]>;
     },
@@ -43,14 +35,16 @@ export const useSimilarVideos = (videoId: string) => {
   });
 };
 
-export const useVideoSuggestions = (freeText: string) => {
-  return useQuery({
-    queryKey: queryKeys.videos.suggestions(freeText),
-    queryFn: async () => {
-      const res = await fetch(API.video.suggestions(freeText));
-      if (!res.ok) throw new Error("Failed to fetch suggestions");
-      return res.json() as Promise<string[]>;
+export const useCreateVideo = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const res = await fetch("/api/video", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Failed to create video");
+      return res.json();
     },
-    enabled: freeText.trim().length > 0,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["videos"] });
+    },
   });
 };

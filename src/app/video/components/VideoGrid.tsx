@@ -19,7 +19,7 @@ export default function VideoGrid({ search = "" }: { search?: string }) {
     isFetchingNextPage,
   } = usePagedVideos(search);
 
-  const videos = data?.pages.flatMap((p) => p.videos) ?? [];
+  const videos = data?.pages.flatMap((p) => p.data) ?? [];
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {

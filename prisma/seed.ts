@@ -236,7 +236,7 @@ async function main() {
           description: v.description,
           videoUrl: v.videoUrl,
           thumbnail: `https://picsum.photos/seed/mepipe${i}/640/360`,
-          genreIds,
+          genres: { connect: genreIds.map((id) => ({ id })) },
         },
       });
     }

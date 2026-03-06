@@ -1,15 +1,14 @@
 import * as yup from 'yup';
 
 export interface Video {
-  id: string;  // String @id @default(uuid()) @map("_id")
-  title: string;  // String
-  description: string;  // String @default("")
-  thumbnail: string | null;  // String?
-  videoUrl: string;  // String
-  publishedAt: string | Date;  // DateTime @default(now())
-  ageRating: AgeRating;  // AgeRating @default(G_0)
-  genreIds: string[];  // String[]
-  commentIds: string[];  // String[]
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string | null;
+  videoUrl: string;
+  publishedAt: string | Date;
+  ageRating: AgeRating;
+  genres?: { id: string; name: string }[];
 }
 
 export interface VideoLight {
@@ -54,7 +53,6 @@ export const VideoCreateValidator = yup.object({
 
 export type VideoCreateRequest = yup.InferType<typeof VideoCreateValidator>;
 
-// NOTE: Not in use // TODO: Should be impossible to change original video file after upload, so no need for videoUrl in update validator
 export const VideoUpdateValidator = yup.object({
   title: yup.string()
     .min(1, 'Title cannot be empty')

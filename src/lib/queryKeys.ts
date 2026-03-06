@@ -3,8 +3,8 @@ export const queryKeys = {
   videos: {
     paged: (freeText?: string) =>
       ["videos", "paged", { freeText: freeText ?? null }] as const,
-    suggestions: (freeText: string) => // TODO: Rename suggestion, to like... "search" or something
-      ["videos", "suggestions", { freeText }] as const,
+    search: (freeText: string) =>
+      ["videos", "search", { freeText }] as const,
     similar: (videoId: string, page: number, pageSize: number) =>
       ["videos", "similar", videoId, { page, pageSize }] as const,
   },

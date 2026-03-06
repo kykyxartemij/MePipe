@@ -2,51 +2,41 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeText } from "@/lib/freeText";
 import { parseIdFromRoute } from "@/models";
-import { parsePaginationFromUrl } from "@/models/paginated-responce.model";
+import { parsePaginationFromUrl } from "@/models/paginated-response.model";
 import { handleApiError } from "@/lib/errorHandler";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import type { Genre } from "../../generated/prisma/client";
 
 // ==== GET ALL (PAGED) ====
 
-// TODO: Make it better
-async function buildFreeTextWhere(freeText: string) {
-  const q = normalizeText(freeText);
-  if (!q) return {};
 
-  const matchingGenres = await prisma.genre.findMany({
-    where: { name: { contains: q, mode: "insensitive" } },
-    select: { id: true },
-  });
-  const genreIds = matchingGenres.map((g) => g.id);
-
-  return {
-    OR: [
-      { title: { contains: q, mode: "insensitive" as const } },
-      ...(genreIds.length > 0 ? [{ genreIds: { hasSome: genreIds } }] : []),
-    ],
-  };
-}
 
 export async function getPagedVideos(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const { page, pageSize } = await parsePaginationFromUrl(searchParams);
-    const freeText = searchParams.get("freeText") ?? "";
+    const freeText = normalizeText(searchParams.get("freeText") ?? "");
 
-    const where = await buildFreeTextWhere(freeText);
+    const where = freeText
+      ? {
+          OR: [
+            { title: { contains: freeText, mode: "insensitive" as const } },
+            { genres: { some: { name: { contains: freeText, mode: "insensitive" as const } } } },
+          ],
+        }
+      : {};
 
-    const [videos, total] = await Promise.all([
-      prisma.video.findMany({
-        where,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        orderBy: { publishedAt: "desc" },
-      }),
-      prisma.video.count({ where }),
-    ]);
+    const videos = await prisma.video.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: { publishedAt: "desc" },
+      include: { genres: true },
+    });
+    // const total = await prisma.video.count({ where }); // Disabled: saves a DB operation per request
 
-    return NextResponse.json({ videos, total, page, pageSize });
+    return NextResponse.json({ videos, page, pageSize });
   } catch (error) {
     return handleApiError(error, 'GET videos');
   }
@@ -57,8 +47,15 @@ export async function getPagedVideos(request: NextRequest) {
 export async function getVideoById(params: Promise<{ id: string }>) {
   try {
     const id = parseIdFromRoute(await params);
-    const video = await prisma.video.findUnique({ where: { id } });
-
+    const video = await prisma.video.findUnique({
+      where: { id },
+      include: {
+        genres: true,
+        _count: {
+          select: { comments: true }
+        }
+      },
+    });
     if (!video) return NextResponse.json({ error: "Video not found" }, { status: 404 });
 
     return NextResponse.json(video);
@@ -74,22 +71,17 @@ export async function getSimilarVideos(
   params: Promise<{ id: string }>
 ) {
   try {
-    const id = parseIdFromRoute(await params);
-    const video = await prisma.video.findUnique({
-      where: { id },
-      select: { genreIds: true },
-    });
-
-    if (!video) return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    const id = parseIdFromRoute(await params); // NOTE: It's videoId, not commentId
 
     const { searchParams } = request.nextUrl;
     const { page, pageSize } = await parsePaginationFromUrl(searchParams);
+    const videoGenreIds = video.genres.map((g: Pick<Genre, "id">) => g.id);
 
     const related = await prisma.video.findMany({
       where: {
         id: { not: id },
-        ...(video.genreIds.length > 0
-          ? { genreIds: { hasSome: video.genreIds } }
+        ...(videoGenreIds.length > 0
+          ? { genres: { some: { id: { in: videoGenreIds } } } }
           : {}),
       },
       skip: (page - 1) * pageSize,
@@ -103,26 +95,20 @@ export async function getSimilarVideos(
   }
 }
 
-// ==== GET SUGGESTIONS ====
+// ==== GET SEARCH SUGGESTIONS ====
 
 const MAX_SUGGESTIONS = 8;
 
-export async function getSuggestions(request: NextRequest) {
+export async function getSearchSuggestions(request: NextRequest) {
   try {
     const q = normalizeText(request.nextUrl.searchParams.get("freeText") ?? "");
     if (q.length < 1) return NextResponse.json([]);
-
-    const matchingGenres = await prisma.genre.findMany({
-      where: { name: { contains: q, mode: "insensitive" } },
-      select: { id: true },
-    });
-    const genreIds = matchingGenres.map((g) => g.id);
 
     const videos = await prisma.video.findMany({
       where: {
         OR: [
           { title: { contains: q, mode: "insensitive" } },
-          ...(genreIds.length > 0 ? [{ genreIds: { hasSome: genreIds } }] : []),
+          { genres: { some: { name: { contains: q, mode: "insensitive" } } } },
         ],
       },
       select: { title: true },
@@ -133,7 +119,7 @@ export async function getSuggestions(request: NextRequest) {
 
     return NextResponse.json(videos.map((v) => v.title));
   } catch (error) {
-    return handleApiError(error, 'GET suggestions');
+    return handleApiError(error, 'GET search suggestions');
   }
 }
 
@@ -173,7 +159,12 @@ export async function createVideo(request: NextRequest) {
     }
 
     const video = await prisma.video.create({
-      data: { title, description, videoUrl: `/uploads/${filename}`, genreIds },
+      data: {
+        title,
+        description,
+        videoUrl: `/uploads/${filename}`,
+        genres: { connect: genreIds.map((id) => ({ id })) },
+      },
     });
 
     return NextResponse.json(video, { status: 201 });

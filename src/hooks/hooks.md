@@ -1,3 +1,4 @@
 # Reusable react query hooks. path @/hooks
 
-For caching. 
+Mostly for long caching. 
+And the SearchField for the NavBar

@@ -14,6 +14,9 @@ export function handleApiError(error: any, context: string) {
     if (error.code === 'P2025') { // Record not found
       return NextResponse.json({ error: "Resource not found" }, { status: 404 });
     }
+    if (error.code === 'P2003') { // Foreign key constraint violation
+      return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    }
     // Add more Prisma codes as needed
   }
 

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { CommentCreateValidator, Comment } from "@/models/comment.models";
 import { parseIdFromRoute } from "@/models";
-import { PaginatedResponse, parsePaginationFromUrl } from "@/models/paginated-responce.model";
+import { parsePaginationFromUrl } from "@/models/paginated-response.model";
 import { handleApiError } from "@/lib/errorHandler";
 
 // ==== GET ====
@@ -28,14 +28,10 @@ export async function getPagedCommentsByVideoId(
     });
     if (!comments) return NextResponse.json({ error: "No comments found for this Video" }, { status: 404 });
 
-    // Get total count for pagination
-    const total = await prisma.comment.count({
-      where: { videoId: id }
-    });
+    // const total = await prisma.comment.count({ where: { videoId: id } }); // Disabled: saves a DB operation per request
 
     // Return paginated response
-    const response: PaginatedResponse<Comment> = { data: comments, total, page, pageSize };
-    return NextResponse.json(response);
+    return NextResponse.json({ data: comments, page, pageSize });
   } catch (error) {
     return handleApiError(error, 'GET comments');
   }
@@ -68,17 +64,8 @@ export async function createComment(
   try {
     const id = parseIdFromRoute(await params);
   
-    const body = await CommentCreateValidator.validate(await request.json());
-    const { text } = body;
+    const { text } = await CommentCreateValidator.validate(await request.json());
 
-    // Check if video exists (required validation)
-    const videoExists = await prisma.video.findUnique({
-      where: { id },
-      select: { id: true }
-    });
-    if (!videoExists) return NextResponse.json({ error: "Video not found" }, { status: 404 });
-
-    // Create a new comment in the database
     const comment = await prisma.comment.create({
       data: { text, videoId: id },
     });

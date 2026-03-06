@@ -1,5 +1,6 @@
 node_modules
 .env
 .next
+generated
 public/uploads/*
 !public/uploads/.gitkeep

@@ -11,21 +11,20 @@ export default async function Page({
 }) {
   const { id } = await params;
 
-  const video = await prisma.video.findUnique({
+  const video = await prisma.video.findUnique({ // Create Hook and USE IT
     where: { id },
+    include: { genres: true },
   });
 
   if (!video) notFound();
 
-  const [comments, genres, totalComments] = await Promise.all([
-    prisma.comment.findMany({
-      where: { videoId: id },
-      take: 10,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.genre.findMany({ where: { id: { in: video.genreIds } } }),
-    prisma.comment.count({ where: { videoId: id } }),
-  ]);
+  const comments = await prisma.comment.findMany({
+    where: { videoId: id },
+    take: 10,
+    orderBy: { createdAt: "desc" },
+  });
+
+  const genres = video.genres;
 
   return (
     <>
@@ -54,7 +53,7 @@ export default async function Page({
           <p style={{ color: "#999", fontSize: 14, marginTop: 0 }}>
             {video.description}
           </p>
-          <CommentSection videoId={id} initialComments={comments} totalComments={totalComments} />
+          <CommentSection videoId={id} initialComments={comments} />
         </div>
         <aside className="video-sidebar">
           <SimilarVideos videoId={id} />

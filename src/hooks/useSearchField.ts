@@ -1,10 +1,15 @@
-import { useVideoSuggestions } from "@/app/video/hooks/useVideoHooks";
+import { useQuery } from "@tanstack/react-query";
+import { API } from "@/lib/apiUrl";
+import { queryKeys } from "@/lib/queryKeys";
 
-export const useSearchField = (debouncedQuery: string) => {
-  const { data: suggestions, isLoading } = useVideoSuggestions(debouncedQuery);
-
-  return {
-    suggestions: suggestions || [],
-    isLoading,
-  };
+export const useSearchField = (freeText: string) => {
+  return useQuery({
+    queryKey: queryKeys.videos.search(freeText),
+    queryFn: async () => {
+      const res = await fetch(API.video.search(freeText));
+      if (!res.ok) throw new Error("Failed to fetch search suggestions");
+      return res.json() as Promise<string[]>;
+    },
+    enabled: freeText.trim().length > 0,
+  });
 };

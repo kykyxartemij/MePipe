@@ -7,15 +7,15 @@ export const API = {
       if (freeText) params.set('freeText', freeText);
       return `/api/video?${params.toString()}`;
     },
-    details: (videoId: string) => { // TODO: Rename to "single"
+    single: (videoId: string) => {
       return `/api/video/${videoId}`;
     },
     similar: (videoId: string, page: number, pageSize: number) => {
       const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
       return `/api/video/${videoId}/similar?${params.toString()}`;
     },
-    suggestions: (freeText: string) => {
-      return `/api/video/suggestions?freeText=${encodeURIComponent(freeText)}`;
+    search: (freeText: string) => {
+      return `/api/video/search?freeText=${encodeURIComponent(freeText)}`;
     },
   },
   comment: {
