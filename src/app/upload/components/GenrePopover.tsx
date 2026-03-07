@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import type { Genre } from "@/models/genre.models";
+import type { Genre } from '@/models/genre.models';
 
 export default function GenrePopover({
   open,
@@ -20,20 +20,20 @@ export default function GenrePopover({
   return (
     <div
       style={{
-        position: "fixed",
+        position: 'fixed',
         inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         zIndex: 1000,
       }}
       onClick={onClose}
     >
       <div
         style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
           borderRadius: 8,
           padding: 20,
           minWidth: 260,
@@ -41,11 +41,17 @@ export default function GenrePopover({
         onClick={(e) => e.stopPropagation()}
       >
         <h4 style={{ marginBottom: 12 }}>Select Genres</h4>
-        <div style={{ maxHeight: 300, overflowY: "auto" }}>
+        <div style={{ maxHeight: 300, overflowY: 'auto' }}>
           {genres.map((g) => (
             <label
               key={g.id}
-              style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, cursor: "pointer" }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 6,
+                cursor: 'pointer',
+              }}
             >
               <input
                 type="checkbox"
@@ -59,7 +65,7 @@ export default function GenrePopover({
             </label>
           ))}
         </div>
-        <button onClick={onClose} style={{ marginTop: 12, width: "100%" }}>
+        <button onClick={onClose} style={{ marginTop: 12, width: '100%' }}>
           Done
         </button>
       </div>

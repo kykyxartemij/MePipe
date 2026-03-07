@@ -101,6 +101,7 @@ Services contain all the Prisma queries and business logic.
 ### Key Prisma Patterns
 
 #### Finding records
+
 ```typescript
 // Single record by ID
 const video = await prisma.video.findUnique({ where: { id } });
@@ -109,7 +110,7 @@ const video = await prisma.video.findUnique({ where: { id } });
 const videos = await prisma.video.findMany({
   skip: (page - 1) * pageSize,
   take: pageSize,
-  orderBy: { publishedAt: "desc" },
+  orderBy: { publishedAt: 'desc' },
 });
 
 // Count (for pagination total)
@@ -117,39 +118,42 @@ const total = await prisma.video.count({ where });
 ```
 
 #### Filtering (contains, insensitive)
+
 ```typescript
 // Case-insensitive text search
 const where = {
-  title: { contains: "bunny", mode: "insensitive" as const }
+  title: { contains: 'bunny', mode: 'insensitive' as const },
 };
 ```
 
 #### Relations (include, connect)
+
 ```typescript
 // Include related data (JOIN in one query)
 const video = await prisma.video.findUnique({
   where: { id },
-  include: { genres: true },  // Returns video with genres array
+  include: { genres: true }, // Returns video with genres array
 });
 
 // Filter by relation
 const videos = await prisma.video.findMany({
   where: {
-    genres: { some: { name: { contains: "action", mode: "insensitive" } } }
+    genres: { some: { name: { contains: 'action', mode: 'insensitive' } } },
   },
 });
 
 // Connect existing genres when creating a video
 const video = await prisma.video.create({
   data: {
-    title: "My Video",
-    videoUrl: "/uploads/file.mp4",
-    genres: { connect: [{ id: "genre-uuid-1" }, { id: "genre-uuid-2" }] },
+    title: 'My Video',
+    videoUrl: '/uploads/file.mp4',
+    genres: { connect: [{ id: 'genre-uuid-1' }, { id: 'genre-uuid-2' }] },
   },
 });
 ```
 
 #### Many-to-Many (implicit)
+
 Genre ↔ Video is an **implicit many-to-many** relation.
 Prisma auto-creates a join table `_GenreToVideo` — you never touch it directly.
 Neither model stores the other's IDs. Use `connect`/`disconnect` to manage.
@@ -170,10 +174,12 @@ Neither model stores the other's IDs. Use `connect`/`disconnect` to manage.
 All client-side data fetching uses React Query via hooks in `src/hooks/` and `src/app/video/hooks/`.
 
 **Cache settings** (configured in `QueryProvider.tsx`):
+
 - `staleTime: 3 minutes` — data is considered fresh for 3 min, no refetch
 - `gcTime: 10 minutes` — cached data kept in memory for 10 min after component unmounts
 
 This means:
+
 - First visit to `/video` → 1 API call → 1 DB operation
 - Navigate away and back within 3 min → **0 API calls, 0 DB operations**
 - After 3 min → refetches in background
@@ -182,24 +188,24 @@ This means:
 
 ```typescript
 // src/lib/queryKeys.ts
-queryKeys.videos.paged(freeText)              // ["videos", "paged", { freeText }]
-queryKeys.videos.search(freeText)             // ["videos", "search", { freeText }]
-queryKeys.videos.similar(videoId, page, size) // ["videos", "similar", id, { page, size }]
-queryKeys.comments.pagedByVideo(videoId)      // ["comments", "video", id, { pageSize }]
-queryKeys.genres.list()                       // ["genres", { q: null }]
+queryKeys.video.paged(freeText); // ["video", "paged", { freeText }]
+queryKeys.video.search(freeText); // ["video", "search", { freeText }]
+queryKeys.video.similar(videoId, page, size); // ["video", "similar", id, { page, size }]
+queryKeys.comment.pagedByVideo(videoId); // ["comment", "video", id, { pageSize }]
+queryKeys.genre.list(); // ["genre", { q: null }]
 ```
 
 Query keys determine cache identity — same key = cached result reused.
 
 ### Hooks
 
-| Hook | File | Purpose |
-|---|---|---|
-| `usePagedVideos` | `video/hooks/useVideoHooks.ts` | Infinite scroll video grid |
-| `useSimilarVideos` | `video/hooks/useVideoHooks.ts` | Related videos sidebar |
-| `useVideoSearch` | `video/hooks/useVideoHooks.ts` | Search bar suggestions |
-| `useGenres` | `hooks/useGenres.ts` | Genre list for upload form |
-| `useSearchField` | `hooks/useSearchField.ts` | Wires search hook to UI |
+| Hook               | File                           | Purpose                    |
+| ------------------ | ------------------------------ | -------------------------- |
+| `usePagedVideos`   | `video/hooks/useVideoHooks.ts` | Infinite scroll video grid |
+| `useSimilarVideos` | `video/hooks/useVideoHooks.ts` | Related videos sidebar     |
+| `useVideoSearch`   | `video/hooks/useVideoHooks.ts` | Search bar suggestions     |
+| `useGenres`        | `hooks/useGenres.ts`           | Genre list for upload form |
+| `useSearchField`   | `hooks/useSearchField.ts`      | Wires search hook to UI    |
 
 ---
 
@@ -210,7 +216,8 @@ Runtime validation for API inputs. Lives in `src/models/`.
 ```typescript
 // Define a validator
 export const CommentCreateValidator = yup.object({
-  text: yup.string()
+  text: yup
+    .string()
     .required('Comment text is required')
     .trim()
     .min(1, 'Comment cannot be empty')
@@ -231,13 +238,13 @@ Validators are also used client-side with `react-hook-form` via `@hookform/resol
 All API URLs are defined in `src/lib/apiUrl.ts`:
 
 ```typescript
-API.video.paged(page, pageSize, freeText) // /api/video?page=1&pageSize=100&freeText=...
-API.video.single(videoId)                 // /api/video/:id
-API.video.similar(videoId, page, pageSize)// /api/video/:id/similar?...
-API.video.search(freeText)                // /api/video/search?freeText=...
-API.comment.pagedByVideo(videoId, p, ps)  // /api/video/:id/comments?...
-API.comment.create(videoId)               // /api/video/:id/comments
-API.genre.list()                          // /api/genre
+API.video.paged(page, pageSize, freeText); // /api/video?page=1&pageSize=100&freeText=...
+API.video.single(videoId); // /api/video/:id
+API.video.similar(videoId, page, pageSize); // /api/video/:id/similar?...
+API.video.search(freeText); // /api/video/search?freeText=...
+API.comment.pagedByVideo(videoId, p, ps); // /api/video/:id/comments?...
+API.comment.create(videoId); // /api/video/:id/comments
+API.genre.list(); // /api/genre
 ```
 
 ---
@@ -272,20 +279,21 @@ No separate "get genre IDs" call needed — Prisma handles the join internally.
 
 ## NPM Scripts
 
-| Script | Command | When to use |
-|---|---|---|
-| `dev` | `next dev` | Start dev server |
-| `build` | `next build` | Production build |
-| `db:generate` | `prisma generate` | After cloning or changing schema |
-| `db:push` | `prisma db push` | After changing schema (syncs to DB) |
-| `db:seed` | `tsx --env-file=.env prisma/seed.ts` | Populate sample data |
-| `db:studio` | `prisma studio` | Visual database browser |
+| Script        | Command                              | When to use                         |
+| ------------- | ------------------------------------ | ----------------------------------- |
+| `dev`         | `next dev`                           | Start dev server                    |
+| `build`       | `next build`                         | Production build                    |
+| `db:generate` | `prisma generate`                    | After cloning or changing schema    |
+| `db:push`     | `prisma db push`                     | After changing schema (syncs to DB) |
+| `db:seed`     | `tsx --env-file=.env prisma/seed.ts` | Populate sample data                |
+| `db:studio`   | `prisma studio`                      | Visual database browser             |
 
 ---
 
 ## Common Patterns
 
 ### Server Component with Direct DB Access
+
 ```typescript
 // src/app/video/[id]/page.tsx — runs on server, calls Prisma directly
 export default async function Page({ params }) {
@@ -298,11 +306,13 @@ export default async function Page({ params }) {
 ```
 
 ### Client Component with React Query
+
 ```typescript
 // "use client" — runs in browser, fetches via API
 const { data, isLoading } = useSimilarVideos(videoId);
 ```
 
 ### Error Handling
+
 All service functions wrap logic in try/catch and delegate to `handleApiError()`,
 which maps Yup validation errors → 400, Prisma P2025 → 404, and everything else → 500.

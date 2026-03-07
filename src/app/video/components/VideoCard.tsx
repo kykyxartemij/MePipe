@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, type CSSProperties } from "react";
-import Link from "next/link";
+import { useState, type CSSProperties } from 'react';
+import Link from 'next/link';
 
 interface Video {
   id: string;
@@ -16,34 +16,34 @@ const BORDER_RADIUS = 12;
 const HOVER_SPREAD = 8;
 
 const thumbStyle: CSSProperties = {
-  width: "100%",
-  display: "block",
-  aspectRatio: "16/9",
-  objectFit: "cover",
+  width: '100%',
+  display: 'block',
+  aspectRatio: '16/9',
+  objectFit: 'cover',
   borderRadius: BORDER_RADIUS,
 };
 
 const bodyStyle: CSSProperties = {
-  padding: "10px 4px 4px",
+  padding: '10px 4px 4px',
 };
 
 const titleStyle: CSSProperties = {
-  fontSize: "0.95rem",
+  fontSize: '0.95rem',
   marginBottom: 2,
   fontWeight: 600,
 };
 
 const descStyle: CSSProperties = {
-  fontSize: "0.8rem",
-  color: "#aaa",
+  fontSize: '0.8rem',
+  color: '#aaa',
   margin: 0,
 };
 
 /* ─── skeleton ─── */
 const shimmer: CSSProperties = {
-  background: "linear-gradient(90deg, #1a1a1a 25%, #333 50%, #1a1a1a 75%)",
-  backgroundSize: "200% 100%",
-  animation: "shimmer 1.4s ease-in-out infinite",
+  background: 'linear-gradient(90deg, #1a1a1a 25%, #333 50%, #1a1a1a 75%)',
+  backgroundSize: '200% 100%',
+  animation: 'shimmer 1.4s ease-in-out infinite',
   borderRadius: 6,
 };
 
@@ -51,19 +51,19 @@ export function VideoCardSkeleton() {
   return (
     <>
       <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
-      <div style={{ width: "100%" }}>
+      <div style={{ width: '100%' }}>
         <div
           style={{
             ...shimmer,
-            width: "100%",
-            aspectRatio: "16/9",
+            width: '100%',
+            aspectRatio: '16/9',
             borderRadius: BORDER_RADIUS,
           }}
         />
         <div style={bodyStyle}>
-          <div style={{ ...shimmer, height: 14, width: "75%", marginBottom: 8 }} />
-          <div style={{ ...shimmer, height: 11, width: "100%", marginBottom: 6 }} />
-          <div style={{ ...shimmer, height: 11, width: "55%" }} />
+          <div style={{ ...shimmer, height: 14, width: '75%', marginBottom: 8 }} />
+          <div style={{ ...shimmer, height: 11, width: '100%', marginBottom: 6 }} />
+          <div style={{ ...shimmer, height: 11, width: '55%' }} />
         </div>
       </div>
     </>
@@ -82,21 +82,19 @@ export default function VideoCard({
 
   const desc = video.description
     ? video.description.length > maxDescriptionLength
-      ? video.description.slice(0, maxDescriptionLength) + "…"
+      ? video.description.slice(0, maxDescriptionLength) + '…'
       : video.description
     : null;
 
   const cardStyle: CSSProperties = {
-    display: "block",
-    width: "100%",
-    textDecoration: "none",
-    color: "inherit",
+    display: 'block',
+    width: '100%',
+    textDecoration: 'none',
+    color: 'inherit',
     borderRadius: BORDER_RADIUS,
-    boxShadow: hovered
-      ? `0 0 0 ${HOVER_SPREAD}px #1a1a1a`
-      : "0 0 0 0px transparent",
-    background: hovered ? "#1a1a1a" : "transparent",
-    transition: "box-shadow 0.2s, background 0.2s",
+    boxShadow: hovered ? `0 0 0 ${HOVER_SPREAD}px #1a1a1a` : '0 0 0 0px transparent',
+    background: hovered ? '#1a1a1a' : 'transparent',
+    transition: 'box-shadow 0.2s, background 0.2s',
   };
 
   return (

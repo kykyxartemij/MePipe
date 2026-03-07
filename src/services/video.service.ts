@@ -1,62 +1,75 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { normalizeText } from "@/lib/freeText";
-import { parseIdFromRoute } from "@/models";
-import { parsePaginationFromUrl } from "@/models/paginated-response.model";
-import { handleApiError } from "@/lib/errorHandler";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import type { Genre } from "../../generated/prisma/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { normalizeText } from '@/lib/freeText';
+import { parseIdFromRoute } from '@/models';
+import { parsePaginationFromUrl, createPaginatedResponse } from '@/models/paginated-response.model';
+import { handleApiError } from '@/lib/errorHandler';
+import { writeFile, mkdir } from 'fs/promises';
+import sharp from 'sharp';
+import ffmpeg from 'fluent-ffmpeg';
+import fs from 'fs';
+import path from 'path';
+import { AgeRating, VideoCreateValidator, VideoWriteModel } from '@/models/video.models';
+import { cached, invalidateCache } from '@/lib/serverCache';
+import { CACHE_KEYS } from '@/lib/cacheKeys';
 
 // ==== GET ALL (PAGED) ====
-
-
-
 export async function getPagedVideos(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const { page, pageSize } = await parsePaginationFromUrl(searchParams);
-    const freeText = normalizeText(searchParams.get("freeText") ?? "");
+    const freeText = normalizeText(searchParams.get('freeText') ?? '');
 
     const where = freeText
       ? {
           OR: [
-            { title: { contains: freeText, mode: "insensitive" as const } },
-            { genres: { some: { name: { contains: freeText, mode: "insensitive" as const } } } },
+            { title: { contains: freeText, mode: 'insensitive' as const } },
+            { genres: { some: { name: { contains: freeText, mode: 'insensitive' as const } } } },
           ],
         }
       : {};
 
-    const videos = await prisma.video.findMany({
-      where,
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      orderBy: { publishedAt: "desc" },
-      include: { genres: true },
-    });
-    // const total = await prisma.video.count({ where }); // Disabled: saves a DB operation per request
+    const videos = await cached(
+      () =>
+        prisma.video.findMany({
+          where,
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          orderBy: { publishedAt: 'desc' },
+          include: { genres: true },
+          select: {
+            id: true,
+            title: true,
+            thumbnailUrl: true,
+            description: true,
+          },
+        }),
+      CACHE_KEYS.video.paged(page, pageSize, freeText)
+    );
 
-    return NextResponse.json({ videos, page, pageSize });
+    return NextResponse.json(createPaginatedResponse(videos, page, pageSize));
   } catch (error) {
     return handleApiError(error, 'GET videos');
   }
 }
 
 // ==== GET BY ID ====
-
 export async function getVideoById(params: Promise<{ id: string }>) {
   try {
     const id = parseIdFromRoute(await params);
-    const video = await prisma.video.findUnique({
-      where: { id },
-      include: {
-        genres: true,
-        _count: {
-          select: { comments: true }
-        }
-      },
-    });
-    if (!video) return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    const video = await cached(
+      () =>
+        prisma.video.findUniqueOrThrow({
+          where: { id },
+          include: {
+            genres: true,
+            _count: {
+              select: { comments: true },
+            },
+          },
+        }),
+      CACHE_KEYS.video.byId(id)
+    );
 
     return NextResponse.json(video);
   } catch (error) {
@@ -64,110 +77,194 @@ export async function getVideoById(params: Promise<{ id: string }>) {
   }
 }
 
-// ==== GET RELATED ====
-
-export async function getSimilarVideos(
-  request: NextRequest,
-  params: Promise<{ id: string }>
-) {
+// ==== GET SIMILAR ====
+export async function getSimilarVideos(request: NextRequest, params: Promise<{ id: string }>) {
   try {
-    const id = parseIdFromRoute(await params); // NOTE: It's videoId, not commentId
+    const id = parseIdFromRoute(await params);
 
     const { searchParams } = request.nextUrl;
     const { page, pageSize } = await parsePaginationFromUrl(searchParams);
-    const videoGenreIds = video.genres.map((g: Pick<Genre, "id">) => g.id);
 
-    const related = await prisma.video.findMany({
-      where: {
-        id: { not: id },
-        ...(videoGenreIds.length > 0
-          ? { genres: { some: { id: { in: videoGenreIds } } } }
-          : {}),
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      orderBy: { publishedAt: "desc" },
-    });
+    // NOTE: Cool example of prisma's Relation usage
+    // prettier-ignore
+    const related = await cached(
+      () =>
+        prisma.video.findMany({
+          where: {
+            id: { not: id }, // videoId
+            genres: { // videoId -> genreId
+              some: {
+                videos: { // videoId -> genreId -> genreVideoId
+                  some: {
+                    id: id, // videoId -> genreId: videoId -> genreId -> genreVideoId -> genreGenreId
+                  },
+                },
+              },
+            },
+          },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          orderBy: { publishedAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            videoUrl: true,
+            thumbnailUrl: true,
+            description: true,
+          },
+        }),
+      CACHE_KEYS.video.similar(id, page, pageSize)
+    );
 
-    return NextResponse.json(related);
+    return NextResponse.json(createPaginatedResponse(related, page, pageSize));
   } catch (error) {
     return handleApiError(error, 'GET related videos');
   }
 }
 
 // ==== GET SEARCH SUGGESTIONS ====
-
-const MAX_SUGGESTIONS = 8;
-
 export async function getSearchSuggestions(request: NextRequest) {
   try {
-    const q = normalizeText(request.nextUrl.searchParams.get("freeText") ?? "");
-    if (q.length < 1) return NextResponse.json([]);
+    const freeText = normalizeText(request.nextUrl.searchParams.get('freeText') ?? '');
+    if (freeText.length < 1) return NextResponse.json([]);
 
-    const videos = await prisma.video.findMany({
-      where: {
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { genres: { some: { name: { contains: q, mode: "insensitive" } } } },
-        ],
-      },
-      select: { title: true },
-      take: MAX_SUGGESTIONS,
-      orderBy: { publishedAt: "desc" },
-      distinct: ["title"],
-    });
+    const videos = await cached(
+      () =>
+        prisma.video.findMany({
+          where: {
+            OR: [
+              { title: { contains: freeText, mode: 'insensitive' } },
+              { genres: { some: { name: { contains: freeText, mode: 'insensitive' } } } },
+            ],
+          },
+          select: { title: true },
+          orderBy: { publishedAt: 'desc' },
+          take: 8,
+          distinct: ['title'],
+        }),
+      CACHE_KEYS.video.search(freeText)
+    );
 
-    return NextResponse.json(videos.map((v) => v.title));
+    return NextResponse.json(videos);
   } catch (error) {
     return handleApiError(error, 'GET search suggestions');
   }
 }
 
 // ==== CREATE ====
-
 export async function createVideo(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const title = formData.get("title") as string | null;
-    const description = (formData.get("description") as string) ?? "";
-    const genresRaw = formData.get("genres") as string | null;
-    const file = formData.get("video") as File | null;
+    const title = formData.get('title') as string;
+    const description = (formData.get('description') as string) ?? '';
+    const genreIds = formData.getAll('genreIds') as string[];
+    const ageRatingRaw = formData.get('ageRating') as AgeRating;
 
-    if (!title || !file) {
-      return NextResponse.json(
-        { error: "Title and video file are required" },
-        { status: 400 }
-      );
-    }
+    const thumbnail = formData.get('thumbnailFile') as File | null;
+    const video = formData.get('videoFile') as File;
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const validationData: VideoWriteModel = {
+      title,
+      description,
+      thumbnailFile: thumbnail || undefined,
+      ageRating: ageRatingRaw,
+      genreIds,
+      videoFile: video,
+    };
+    const validatedData = await VideoCreateValidator.validate(validationData);
+
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
     await mkdir(uploadsDir, { recursive: true });
 
-    const ext = path.extname(file.name) || ".mp4";
+    const ext = path.extname(validatedData.videoFile.name) || '.mp4';
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
     const filePath = path.join(uploadsDir, filename);
-    const bytes = await file.arrayBuffer();
+    const bytes = await validatedData.videoFile.arrayBuffer();
     await writeFile(filePath, Buffer.from(bytes));
 
-    let genreIds: string[] = [];
-    if (genresRaw) {
-      try {
-        genreIds = JSON.parse(genresRaw);
-      } catch {
-        /* ignore */
+    // TODO: Check what AI made ============
+    // ALSO: Add videoLength (minutes:seconds) to prisma.scheme/database
+    // Thumbnail processing
+    let thumbnailPath = path.join(uploadsDir, `${filename}-thumb.jpg`);
+    if (validatedData.thumbnailFile) {
+      // If thumbnail uploaded, process it
+      const thumbBytes = await validatedData.thumbnailFile.arrayBuffer();
+      await sharp(Buffer.from(thumbBytes))
+        .resize(1280, 720, { fit: 'cover' })
+        .jpeg({ quality: 80 })
+        .toFile(thumbnailPath);
+    } else {
+      // If no thumbnail, extract frame from video
+      // Ensure video is at least 3s
+      const getVideoDuration = async (filePath: string): Promise<number> => {
+        return new Promise((resolve, reject) => {
+          ffmpeg.ffprobe(filePath, (err: Error | null, metadata: ffmpeg.FfprobeData) => {
+            if (err) return reject(err);
+            const duration = metadata.format.duration;
+            if (typeof duration === 'number') {
+              resolve(duration);
+            } else {
+              reject(new Error('Duration not found'));
+            }
+          });
+        });
+      };
+      const duration = await getVideoDuration(filePath);
+      if (duration < 3) {
+        return NextResponse.json(
+          { error: 'Video must be at least 3 seconds long' },
+          { status: 400 }
+        );
+      }
+      if (duration > 3600) {
+        return NextResponse.json(
+          { error: 'Video must not be longer than 60 minutes' },
+          { status: 400 }
+        );
+      }
+      // Extract frame at 1s
+      await new Promise((resolve, reject) => {
+        ffmpeg(filePath)
+          .screenshots({
+            timestamps: [1],
+            filename: `${filename}-thumb-temp.jpg`,
+            folder: uploadsDir,
+            size: '1280x720',
+          })
+          .on('end', resolve)
+          .on('error', reject);
+      });
+      // Convert to jpg and crop with sharp
+      await sharp(path.join(uploadsDir, `${filename}-thumb-temp.jpg`))
+        .resize(1280, 720, { fit: 'cover' })
+        .jpeg({ quality: 80 })
+        .toFile(thumbnailPath);
+      // Remove temp file
+      await fs.promises.unlink(path.join(uploadsDir, `${filename}-thumb-temp.jpg`));
+      if (typeof duration !== 'number' || duration < 3) {
+        return NextResponse.json(
+          { error: 'Video must be at least 3 seconds long' },
+          { status: 400 }
+        );
       }
     }
+    // ==== End of what AI made ===============
 
-    const video = await prisma.video.create({
+    const videoRecord = await prisma.video.create({
       data: {
-        title,
-        description,
+        title: validatedData.title,
+        description: validatedData.description,
         videoUrl: `/uploads/${filename}`,
-        genres: { connect: genreIds.map((id) => ({ id })) },
+        thumbnailUrl: `/uploads/${filename}-thumb.jpg`,
+        ageRating: validatedData.ageRating,
+        genres: { connect: validatedData.genreIds.map((id) => ({ id })) },
       },
+      include: { genres: true },
     });
 
-    return NextResponse.json(video, { status: 201 });
+    invalidateCache(...CACHE_KEYS.video.invalidate());
+
+    return NextResponse.json(videoRecord, { status: 201 });
   } catch (error) {
     return handleApiError(error, 'POST video');
   }

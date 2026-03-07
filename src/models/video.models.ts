@@ -1,6 +1,11 @@
 import * as yup from 'yup';
+import { Video as PrismaVideo } from '@prisma/client';
 
-export interface Video {
+// ==== BE Model ====
+export interface VideoPrismaModel extends PrismaVideo {}
+
+// ==== FE Models ====
+export interface VideoModel {
   id: string;
   title: string;
   description: string;
@@ -11,7 +16,7 @@ export interface Video {
   genres?: { id: string; name: string }[];
 }
 
-export interface VideoLight {
+export interface VideoLightModel {
   id: string;
   title: string;
   videoUrl: string;
@@ -19,60 +24,52 @@ export interface VideoLight {
   description?: string;
 }
 
-export enum AgeRating {
-  G_0 = "G_0", 
-  G_12 = "G_12",
-  G_16 = "G_16",
-  G_18 = "G_18",
+export interface VideoWriteModel {
+  title: string;
+  description: string;
+  thumbnailFile?: File | null;
+  videoFile: File;
+  ageRating: AgeRating;
+  genreIds: string[];
 }
 
-// Validator for creating new videos (upload)
+export enum AgeRating {
+  G_0 = 'G_0',
+  G_12 = 'G_12',
+  G_16 = 'G_16',
+  G_18 = 'G_18',
+}
+
+// ==== Validator ====
 export const VideoCreateValidator = yup.object({
-  title: yup.string()
+  title: yup
+    .string()
     .required('Video title is required')
     .trim()
     .min(1, 'Title cannot be empty')
     .max(200, 'Title is too long (max 200 characters)'),
-  description: yup.string()
+  description: yup
+    .string()
     .max(2000, 'Description is too long (max 2000 characters)')
     .default('')
     .trim(),
-  videoUrl: yup.string()
-    .required('Video URL is required')
-    .url('Video URL must be a valid URL'),
-  thumbnail: yup.string()
-    .url('Thumbnail must be a valid URL')
-    .optional(),
-  ageRating: yup.mixed<AgeRating>()
+  videoFile: yup
+    .mixed<File>()
+    .required('Video file is required')
+    .test('is-file', 'Must be a file', (value) => value instanceof File && value.size > 0),
+  thumbnailFile: yup
+    .mixed<File>()
+    .nullable()
+    .test(
+      'is-file-or-null',
+      'Must be a file or null',
+      (value) => value == null || (value instanceof File && value.size > 0)
+    ),
+  ageRating: yup
+    .mixed<AgeRating>()
     .oneOf(Object.values(AgeRating), 'Invalid age rating')
     .default(AgeRating.G_0),
-  genreIds: yup.array()
-    .of(yup.string().uuid('Genre ID must be a valid UUID'))
-    .default([]),
+  genreIds: yup.array().of(yup.string().uuid('Genre ID must be a valid UUID')).default([]),
 });
 
 export type VideoCreateRequest = yup.InferType<typeof VideoCreateValidator>;
-
-export const VideoUpdateValidator = yup.object({
-  title: yup.string()
-    .min(1, 'Title cannot be empty')
-    .max(200, 'Title is too long (max 200 characters)')
-    .trim()
-    .optional(),
-  description: yup.string()
-    .max(2000, 'Description is too long (max 2000 characters)')
-    .trim()
-    .optional(),
-  thumbnail: yup.string()
-    .url('Thumbnail must be a valid URL')
-    .optional(),
-  ageRating: yup.mixed<AgeRating>()
-    .oneOf(Object.values(AgeRating), 'Invalid age rating')
-    .optional(),
-  genreIds: yup.array()
-    .of(yup.string().uuid('Genre ID must be a valid UUID'))
-    .optional(),
-});
-
-export type VideoUpdateRequest = yup.InferType<typeof VideoUpdateValidator>;
-

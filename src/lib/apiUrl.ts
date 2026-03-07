@@ -7,8 +7,11 @@ export const API = {
       if (freeText) params.set('freeText', freeText);
       return `/api/video?${params.toString()}`;
     },
-    single: (videoId: string) => {
+    byId: (videoId: string) => {
       return `/api/video/${videoId}`;
+    },
+    create: () => {
+      return '/api/video';
     },
     similar: (videoId: string, page: number, pageSize: number) => {
       const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
@@ -19,7 +22,7 @@ export const API = {
     },
   },
   comment: {
-    pagedByVideo: (videoId: string, page: number, pageSize: number) => {
+    pagedByVideoId: (videoId: string, page: number, pageSize: number) => {
       const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
       return `/api/video/${videoId}/comments?${params.toString()}`;
     },
@@ -29,6 +32,9 @@ export const API = {
   },
   genre: {
     list: () => {
+      return '/api/genre';
+    },
+    create: () => {
       return '/api/genre';
     },
   },

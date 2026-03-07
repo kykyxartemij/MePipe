@@ -18,7 +18,12 @@
 }
 
 body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
@@ -127,7 +132,9 @@ textarea:focus {
   border-radius: 50%;
   outline: none;
   pointer-events: auto;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .art-input-clear:hover {

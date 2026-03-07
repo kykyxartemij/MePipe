@@ -1,13 +1,19 @@
 import * as yup from 'yup';
+import { Genre as PrismaGenre } from '@prisma/client';
 
-export interface Genre {
-  id: string;   // String @id @default(uuid()) @map("_id")
-  name: string; // String @unique
+// ==== BE Model ====
+export interface GenrePrismaModel extends PrismaGenre {}
+
+// ==== FE Model ====
+export interface GenreModel {
+  id: string;
+  name: string;
 }
 
-// Validator
+// ==== Validator ====
 export const GenreCreateValidator = yup.object({
-  name: yup.string()
+  name: yup
+    .string()
     .required('Genre name is required')
     .trim()
     .min(1, 'Genre name cannot be empty')

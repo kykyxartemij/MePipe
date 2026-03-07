@@ -1,4 +1,4 @@
-import VideoGrid from "./components/VideoGrid";
+import VideoGrid from './components/VideoGrid';
 
 export default async function VideoPage({
   searchParams,
@@ -10,7 +10,7 @@ export default async function VideoPage({
   return (
     <div>
       {freeText && <h2 style={{ marginBottom: 16 }}>Results for "{freeText}"</h2>}
-      <VideoGrid search={freeText ?? ""} />
+      <VideoGrid search={freeText ?? ''} />
     </div>
   );
 }

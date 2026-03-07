@@ -112,6 +112,7 @@ enum AgeRating {
 ```
 
 **Key Decisions:**
+
 - **PostgreSQL**: Relational database with proper foreign keys
 - **Implicit many-to-many**: `genres Video[]` + `genres Genre[]` creates join table automatically
 - **UUIDs**: All IDs use `uuid()` for global uniqueness
@@ -133,17 +134,20 @@ This combination represents the most cohesive full-stack ecosystem for small app
 ### API Design
 
 #### Validation Strategy
+
 - **Route Params**: Validated with Yup (e.g., video ID from URL)
 - **Request Body**: Validated with Yup (e.g., comment text)
 - **Response Types**: TypeScript interfaces for API contracts
 - **Auto-generated Fields**: `id`, `createdAt` never validated (trusted Prisma)
 
 #### Query Optimization
+
 - **Include relations**: Single queries with `include: { genres: true }` instead of multiple round trips
 - **React Query caching**: Client-side caching to reduce database operations
 - **Prisma Accelerate**: Connection pooling for serverless environments
 
 #### Example: Video with Genres Flow
+
 1. **Client**: `GET /api/videos/{id}`
 2. **Database**: Single query with `include: { genres: true }`
 3. **Response**: Video object with populated genres array
@@ -168,11 +172,13 @@ npm run dev
 ### Deployment Options
 
 #### Free Tier (Current)
+
 - **Database**: Prisma Postgres (100k ops/month, 1GB storage)
 - **Hosting**: Vercel Hobby
 - **Connection**: Prisma Accelerate (connection pooling)
 
 #### Production
+
 - **Database**: Prisma Postgres (1M+ ops/month)
 - **Hosting**: Vercel Pro ($20/mo)
 - **Connection**: Prisma Accelerate (connection pooling)

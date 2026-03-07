@@ -1,5 +1,5 @@
-import { unstable_cache } from "next/cache";
-import { revalidateTag } from "next/cache";
+import { unstable_cache } from 'next/cache';
+import { revalidateTag } from 'next/cache';
 
 /**
  * Server-side cache wrapper using Next.js `unstable_cache`.
@@ -10,31 +10,27 @@ import { revalidateTag } from "next/cache";
  *
  * @param queryFn  - A function that returns a Promise. Do NOT await it before passing.
  * @param cacheKey - Array of strings that uniquely identify this cached entry.
- * @param ttl      - Time-to-live in seconds (default: 60).
+ * @param ttl      - Time-to-live in seconds (default: 90).
  * @param tags     - Optional tags for manual invalidation via `invalidateCache()`.
  *
  * @example
  * const comments = await cached(
  *   () => prisma.comment.findMany({ where: { videoId: id } }),
- *   ["comments", id, String(page), String(pageSize)],
+ *   ["comment", id, String(page), String(pageSize)],
  *   60,
- *   ["comments", `comments:${id}`]
+ *   ["comment", `comment:${id}`]
  * );
  */
 export async function cached<T>(
   queryFn: () => Promise<T>,
   cacheKey: string[],
-  ttl: number = 60,
+  ttl: number = 90,
   tags?: string[]
 ): Promise<T> {
-  const cachedFn = unstable_cache(
-    async () => queryFn(),
-    cacheKey,
-    {
-      revalidate: ttl,
-      tags: tags ?? cacheKey,
-    }
-  );
+  const cachedFn = unstable_cache(async () => queryFn(), cacheKey, {
+    revalidate: ttl,
+    tags: tags ?? cacheKey,
+  });
 
   return cachedFn();
 }
@@ -48,7 +44,7 @@ export async function cached<T>(
  *
  * @example
  * await createComment(data);
- * invalidateCache("comments", `comments:${videoId}`);
+ * invalidateCache("comment", `comment:${videoId}`);
  */
 export function invalidateCache(...tags: string[]): void {
   for (const tag of tags) {

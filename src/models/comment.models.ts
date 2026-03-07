@@ -1,17 +1,20 @@
 import * as yup from 'yup';
+import { Comment as PrismaComment } from '@prisma/client';
 
-// ==== Domain Based Model ====
-export interface Comment {
-  id: string; // String @id @default(uuid()) @map("_id")
-  text: string; // String
-  createdAt: Date; // DateTime @default(now())
-  videoId: string; // String
+// ==== BE Model ====
+export interface CommentPrismaModel extends PrismaComment {}
+
+// ==== Base FE Model ====
+export interface CommentModel {
+  id: string;
+  text: string;
+  createdAt: Date;
 }
 
 // ==== Validator ====
-
 export const CommentCreateValidator = yup.object({
-  text: yup.string()
+  text: yup
+    .string()
     .required('Comment text is required')
     .trim()
     .min(1, 'Comment cannot be empty')
@@ -19,4 +22,3 @@ export const CommentCreateValidator = yup.object({
 });
 
 export type CommentCreateRequest = yup.InferType<typeof CommentCreateValidator>;
-

@@ -1,5 +1,5 @@
 // NOTE: Don't care for now. But should be improved and tested.
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
 export function handleApiError(error: any, context: string) {
   console.error(`${context} error:`, error); // Use a proper logger in prod
@@ -11,15 +11,21 @@ export function handleApiError(error: any, context: string) {
 
   // Prisma-specific errors
   if (error.code) {
-    if (error.code === 'P2025') { // Record not found
-      return NextResponse.json({ error: "Resource not found" }, { status: 404 });
+    if (error.code === 'P2025') {
+      // Record not found
+      return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
     }
-    if (error.code === 'P2003') { // Foreign key constraint violation
-      return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    if (error.code === 'P2003') {
+      // Foreign key constraint violation
+      return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
+    }
+    if (error.code === 'P2002') {
+      // Unique constraint failed
+      return NextResponse.json({ error: 'This resource already exists' }, { status: 409 });
     }
     // Add more Prisma codes as needed
   }
 
   // Default to 500
-  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }

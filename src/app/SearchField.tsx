@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useSearchField } from "@/hooks/useSearchField";
-import ArtComboBox, { ArtComboBoxOption } from "@/components/ui/ArtComboBox";
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSearchField } from '@/hooks/useSearchField';
+import ArtComboBox, { ArtComboBoxOption } from '@/components/ui/ArtComboBox';
 
-export default function SearchField({ initialQuery = "" }: { initialQuery?: string }) {
+export default function SearchField({ initialQuery = '' }: { initialQuery?: string }) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
@@ -17,9 +17,9 @@ export default function SearchField({ initialQuery = "" }: { initialQuery?: stri
   const navigate = useCallback(
     (q: string) => {
       const trimmed = q.trim();
-      router.push(trimmed ? `/?freeText=${encodeURIComponent(trimmed)}` : "/");
+      router.push(trimmed ? `/?freeText=${encodeURIComponent(trimmed)}` : '/');
     },
-    [router],
+    [router]
   );
 
   const handleChange = useCallback((value: string) => {
@@ -32,7 +32,7 @@ export default function SearchField({ initialQuery = "" }: { initialQuery?: stri
 
   return (
     <ArtComboBox
-      icon={{ name: "Search", size: 18 }}
+      icon={{ name: 'Search', size: 18 }}
       placeholder="Search"
       clearable
       debounceMs={300}

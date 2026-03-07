@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useSimilarVideos } from "../hooks/useVideoHooks";
-import Link from "next/link";
-import type { CSSProperties } from "react";
+import { useSimilarVideos } from '../hooks/useVideoHooks';
+import Link from 'next/link';
+import type { CSSProperties } from 'react';
 
-import type { VideoLight } from "@/models/video.models";
+import type { VideoLight } from '@/models/video.models';
 interface Video {
   id: string;
   title: string;
@@ -14,10 +14,10 @@ interface Video {
 }
 
 const cardStyle: CSSProperties = {
-  display: "flex",
+  display: 'flex',
   gap: 8,
-  textDecoration: "none",
-  color: "inherit",
+  textDecoration: 'none',
+  color: 'inherit',
   borderRadius: 8,
   padding: 4,
 };
@@ -25,47 +25,49 @@ const cardStyle: CSSProperties = {
 const thumbStyle: CSSProperties = {
   width: 168,
   minWidth: 168,
-  aspectRatio: "16/9",
-  objectFit: "cover",
+  aspectRatio: '16/9',
+  objectFit: 'cover',
   borderRadius: 8,
-  background: "#1a1a1a",
+  background: '#1a1a1a',
 };
 
 const titleStyle: CSSProperties = {
-  fontSize: "0.85rem",
+  fontSize: '0.85rem',
   fontWeight: 600,
   margin: 0,
-  display: "-webkit-box",
+  display: '-webkit-box',
   WebkitLineClamp: 2,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
 };
 
 const descStyle: CSSProperties = {
-  fontSize: "0.75rem",
-  color: "#888",
-  margin: "4px 0 0",
-  display: "-webkit-box",
+  fontSize: '0.75rem',
+  color: '#888',
+  margin: '4px 0 0',
+  display: '-webkit-box',
   WebkitLineClamp: 2,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
 };
 
 /* skeleton shimmer */
 const shimmer: CSSProperties = {
-  background: "linear-gradient(90deg, #1a1a1a 25%, #333 50%, #1a1a1a 75%)",
-  backgroundSize: "200% 100%",
-  animation: "shimmer 1.4s ease-in-out infinite",
+  background: 'linear-gradient(90deg, #1a1a1a 25%, #333 50%, #1a1a1a 75%)',
+  backgroundSize: '200% 100%',
+  animation: 'shimmer 1.4s ease-in-out infinite',
   borderRadius: 6,
 };
 
 function SkeletonCard() {
   return (
-    <div style={{ display: "flex", gap: 8, padding: 4 }}>
-      <div style={{ ...shimmer, width: 168, minWidth: 168, aspectRatio: "16/9", borderRadius: 8 }} />
+    <div style={{ display: 'flex', gap: 8, padding: 4 }}>
+      <div
+        style={{ ...shimmer, width: 168, minWidth: 168, aspectRatio: '16/9', borderRadius: 8 }}
+      />
       <div style={{ flex: 1 }}>
-        <div style={{ ...shimmer, height: 14, width: "90%", marginBottom: 8 }} />
-        <div style={{ ...shimmer, height: 11, width: "70%" }} />
+        <div style={{ ...shimmer, height: 14, width: '90%', marginBottom: 8 }} />
+        <div style={{ ...shimmer, height: 11, width: '70%' }} />
       </div>
     </div>
   );
@@ -83,8 +85,7 @@ export default function RelatedVideos({ videoId }: { videoId: string }) {
         ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
         : videos.map((v) => (
             <Link key={v.id} href={`/video/${v.id}`} style={cardStyle}>
-              {v.thumbnail ? 
-              (
+              {v.thumbnail ? (
                 <img src={v.thumbnail} alt={v.title} style={thumbStyle} />
               ) : (
                 <video src={v.videoUrl} muted style={thumbStyle} />
@@ -96,7 +97,7 @@ export default function RelatedVideos({ videoId }: { videoId: string }) {
             </Link>
           ))}
       {!isLoading && videos.length === 0 && (
-        <p style={{ color: "#666", fontSize: 14 }}>No related videos found.</p>
+        <p style={{ color: '#666', fontSize: 14 }}>No related videos found.</p>
       )}
     </div>
   );

@@ -1,3 +1,3 @@
-# Mini library 
+# Mini library
 
-Idea is to reduce amount of duplication, while having consistency design 
+Idea is to reduce amount of duplication, while having consistency design

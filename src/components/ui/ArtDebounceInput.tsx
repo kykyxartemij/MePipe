@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { forwardRef, useEffect, useMemo, useRef } from "react";
-import debounce from "lodash.debounce";
-import ArtInput from "./ArtInput";
+import React, { forwardRef, useEffect, useMemo, useRef } from 'react';
+import debounce from 'lodash.debounce';
+import ArtInput from './ArtInput';
 
 interface ArtDebounceInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   debounceMs?: number;
@@ -38,7 +38,7 @@ const ArtDebounceInput = forwardRef<HTMLInputElement, ArtDebounceInputProps>(
   }
 );
 
-ArtDebounceInput.displayName = "ArtDebounceInput";
+ArtDebounceInput.displayName = 'ArtDebounceInput';
 
 export default ArtDebounceInput;
 export { ArtDebounceInput };

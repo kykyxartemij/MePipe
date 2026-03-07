@@ -3,9 +3,7 @@ import * as yup from 'yup';
 
 // Reusable validator for UUID route parameters (e.g., /videos/[id]).
 export const IdValidator = yup.object({
-  id: yup.string()
-    .required('ID is required')
-    .uuid('ID must be a valid UUID'),
+  id: yup.string().required('ID is required').uuid('ID must be a valid UUID'),
 });
 
 export type IdParams = yup.InferType<typeof IdValidator>;

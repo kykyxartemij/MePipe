@@ -1,31 +1,28 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import GenrePopover from "./GenrePopover";
-import ArtInput from "@/components/ui/ArtInput";
-import ArtTextarea from "@/components/ui/ArtTextarea";
-import { useGenres } from "@/hooks/useGenres";
-import { useCreateVideo } from "@/app/video/hooks/useVideoHooks";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import GenrePopover from './GenrePopover';
+import ArtInput from '@/components/ui/ArtInput';
+import ArtTextarea from '@/components/ui/ArtTextarea';
+import { useGenres } from '@/hooks/useGenres';
+import { useCreateVideo } from '@/app/video/hooks/useVideoHooks';
 
 const schema = yup.object({
-  title: yup
-    .string()
-    .required("Title is required")
-    .min(3, "At least 3 characters"),
-  description: yup.string().default(""),
+  title: yup.string().required('Title is required').min(3, 'At least 3 characters'),
+  description: yup.string().default(''),
   file: yup
     .mixed<FileList>()
-    .required("Video file is required")
-    .test("required", "Please select a video file", (v) => v instanceof FileList && v.length > 0)
-    .test("fileType", "Only video files are allowed", (v) => {
+    .required('Video file is required')
+    .test('required', 'Please select a video file', (v) => v instanceof FileList && v.length > 0)
+    .test('fileType', 'Only video files are allowed', (v) => {
       if (!(v instanceof FileList) || v.length === 0) return true;
-      return v[0].type.startsWith("video/");
+      return v[0].type.startsWith('video/');
     })
-    .test("fileSize", "File must be under 500 MB", (v) => {
+    .test('fileSize', 'File must be under 500 MB', (v) => {
       if (!(v instanceof FileList) || v.length === 0) return true;
       return v[0].size <= 500 * 1024 * 1024;
     }),
@@ -52,10 +49,10 @@ export default function UploadForm() {
 
   const onSubmit = async (values: FormValues) => {
     const formData = new FormData();
-    formData.append("title", values.title);
-    formData.append("description", values.description ?? "");
-    formData.append("video", values.file[0]);
-    formData.append("genres", JSON.stringify(genres));
+    formData.append('title', values.title);
+    formData.append('description', values.description ?? '');
+    formData.append('video', values.file[0]);
+    formData.append('genres', JSON.stringify(genres));
 
     createVideo.mutate(formData, {
       onSuccess: (video) => {
@@ -69,16 +66,16 @@ export default function UploadForm() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      style={{ display: "flex", flexDirection: "column", gap: 12 }}
+      style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
     >
       <div>
         <ArtInput
-          icon={{ name: "Search", size: 18 }}
+          icon={{ name: 'Search', size: 18 }}
           clearable
           type="text"
           placeholder="Title"
           helperText={errors.title?.message}
-          {...register("title")}
+          {...register('title')}
         />
       </div>
 
@@ -87,7 +84,7 @@ export default function UploadForm() {
           placeholder="Description (optional)"
           rows={3}
           helperText={errors.description?.message}
-          {...register("description")}
+          {...register('description')}
         />
       </div>
 
@@ -96,7 +93,7 @@ export default function UploadForm() {
           type="file"
           accept="video/*"
           helperText={errors.file?.message}
-          {...register("file")}
+          {...register('file')}
         />
       </div>
 
@@ -113,9 +110,8 @@ export default function UploadForm() {
       />
 
       <button type="submit" disabled={createVideo.isPending}>
-        {createVideo.isPending ? "Uploading..." : "Upload"}
+        {createVideo.isPending ? 'Uploading...' : 'Upload'}
       </button>
     </form>
   );
 }
-
