@@ -1,29 +1,75 @@
-// NOTE: Don't care for now. But should be improved and tested.
+// Centralized API error handling. Maps known error shapes to HTTP responses.
 import { NextResponse } from 'next/server';
+import axios from 'axios';
+import { Prisma } from '@prisma/client';
+import { ApiError } from '@/models/api-error';
 
 export function handleApiError(error: any, context: string) {
   console.error(`${context} error:`, error); // Use a proper logger in prod
 
-  if (error.name === 'ValidationError') {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-    // TODO: Responsive UI, to show user-friendly messages, pointing in UI where the validation failed.
+  // Our custom ApiError: return structured payload as-is
+  if (error instanceof ApiError) {
+    const payload: any = { error: error.message };
+    if (error.code) payload.code = error.code;
+    if (error.details) payload.details = error.details;
+    return NextResponse.json(payload, { status: error.status });
   }
 
-  // Prisma-specific errors
-  if (error.code) {
+  // Axios errors (when server calls other services or client requests are proxied)
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as any | undefined;
+    const status = error.response?.status ?? 502;
+    const message = data?.error ?? error.message ?? 'Bad Gateway';
+    const code = data?.code;
+    const details = data?.details ?? data;
+    const payload: any = { error: message };
+    if (code) payload.code = code;
+    if (details) payload.details = details;
+    return NextResponse.json(payload, { status });
+  }
+
+  // Yup validation errors
+  if (error && typeof error === 'object' && (error as any).name === 'ValidationError') {
+    const yupErr = error as any;
+    const message = yupErr.message ?? 'Validation failed';
+    let details: any = undefined;
+
+    // Yup provides `inner` which contains per-field errors
+    if (Array.isArray(yupErr.inner) && yupErr.inner.length) {
+      const fieldErrors: Record<string, string[]> = {};
+      yupErr.inner.forEach((e: any) => {
+        const path = e.path || '_global';
+        fieldErrors[path] = fieldErrors[path] || [];
+        if (e.message) fieldErrors[path].push(e.message);
+      });
+      details = { fieldErrors };
+    } else if (Array.isArray(yupErr.errors) && yupErr.errors.length) {
+      details = { errors: yupErr.errors };
+    }
+
+    const payload: any = { error: message };
+    if (details) payload.details = details;
+    return NextResponse.json(payload, { status: 400 });
+  }
+
+  // Prisma known errors
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    let status = 500;
+    let message = 'Database error';
     if (error.code === 'P2025') {
-      // Record not found
-      return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
+      status = 404;
+      message = 'Resource not found';
+    } else if (error.code === 'P2003') {
+      status = 404;
+      message = 'Resource not found';
+    } else if (error.code === 'P2002') {
+      status = 409;
+      message = 'This resource already exists';
+    } else {
+      status = 400;
+      message = error.message ?? 'Database error';
     }
-    if (error.code === 'P2003') {
-      // Foreign key constraint violation
-      return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
-    }
-    if (error.code === 'P2002') {
-      // Unique constraint failed
-      return NextResponse.json({ error: 'This resource already exists' }, { status: 409 });
-    }
-    // Add more Prisma codes as needed
+    return NextResponse.json({ error: message, code: error.code }, { status });
   }
 
   // Default to 500

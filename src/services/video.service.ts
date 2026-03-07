@@ -12,6 +12,7 @@ import path from 'path';
 import { AgeRating, VideoCreateValidator, VideoWriteModel } from '@/models/video.models';
 import { cached, invalidateCache } from '@/lib/serverCache';
 import { CACHE_KEYS } from '@/lib/cacheKeys';
+import { ApiError } from '@/models/api-error';
 
 // ==== GET ALL (PAGED) ====
 export async function getPagedVideos(request: NextRequest) {
@@ -211,16 +212,10 @@ export async function createVideo(request: NextRequest) {
       };
       const duration = await getVideoDuration(filePath);
       if (duration < 3) {
-        return NextResponse.json(
-          { error: 'Video must be at least 3 seconds long' },
-          { status: 400 }
-        );
+        throw new ApiError('Video must be at least 3 seconds long', 400, 'VIDEO_TOO_SHORT');
       }
       if (duration > 3600) {
-        return NextResponse.json(
-          { error: 'Video must not be longer than 60 minutes' },
-          { status: 400 }
-        );
+        throw new ApiError('Video must not be longer than 60 minutes', 400, 'VIDEO_TOO_LONG');
       }
       // Extract frame at 1s
       await new Promise((resolve, reject) => {
@@ -241,12 +236,6 @@ export async function createVideo(request: NextRequest) {
         .toFile(thumbnailPath);
       // Remove temp file
       await fs.promises.unlink(path.join(uploadsDir, `${filename}-thumb-temp.jpg`));
-      if (typeof duration !== 'number' || duration < 3) {
-        return NextResponse.json(
-          { error: 'Video must be at least 3 seconds long' },
-          { status: 400 }
-        );
-      }
     }
     // ==== End of what AI made ===============
 
