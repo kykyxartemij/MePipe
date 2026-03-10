@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
-import { usePagedVideos } from '../hooks/useVideoHooks';
-import VideoCard, { VideoCardSkeleton } from './VideoCard';
+import { usePagedVideos } from '@/hooks/video.hooks';
+import VideoCard, { VideoCardSkeleton } from '../video/VideoCard';
 
 const SKELETON_COUNT = 8;
 const COLS_PER_ROW = 4;
@@ -11,9 +11,9 @@ export default function VideoGrid({ search = '' }: { search?: string }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    usePagedVideos(search);
+    usePagedVideos(1, 24, search);
 
-  const videos = data?.pages.flatMap((p) => p.data) ?? [];
+  const videos = data?.pages.flatMap((p: any) => p.data) ?? [];
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -52,7 +52,7 @@ export default function VideoGrid({ search = '' }: { search?: string }) {
       <div className="video-grid">
         {isLoading
           ? Array.from({ length: SKELETON_COUNT }, (_, i) => <VideoCardSkeleton key={i} />)
-          : videos.map((video) => <VideoCard key={video.id} video={video} />)}
+          : videos.map((video: any) => <VideoCard key={video.id} video={video} />)}
 
         {isFetchingNextPage &&
           Array.from({ length: 4 }, (_, i) => <VideoCardSkeleton key={`next-${i}`} />)}

@@ -8,8 +8,9 @@ import * as yup from 'yup';
 import GenrePopover from './GenrePopover';
 import ArtInput from '@/components/ui/ArtInput';
 import ArtTextarea from '@/components/ui/ArtTextarea';
-import { useGenres } from '@/hooks/useGenres';
-import { useCreateVideo } from '@/app/video/hooks/useVideoHooks';
+import { useGenres } from '@/hooks/genre.hooks';
+import { useCreateVideo } from '@/hooks/video.hooks';
+import type { VideoModel } from '@/models/video.models';
 
 const schema = yup.object({
   title: yup.string().required('Title is required').min(3, 'At least 3 characters'),
@@ -55,11 +56,11 @@ export default function UploadForm() {
     formData.append('genres', JSON.stringify(genres));
 
     createVideo.mutate(formData, {
-      onSuccess: (video) => {
-        reset();
-        setGenres([]);
-        router.push(`/video/${video.id}`);
-      },
+        onSuccess: (video: VideoModel) => {
+          reset();
+          setGenres([]);
+          router.push(`/video/${video.id}`);
+        },
     });
   };
 

@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import { Video as PrismaVideo } from '@prisma/client';
+import { GenreModel } from './genre.models';
 
 // ==== BE Model ====
 export interface VideoPrismaModel extends PrismaVideo {}
@@ -9,36 +10,40 @@ export interface VideoModel {
   id: string;
   title: string;
   description: string;
-  thumbnail: string | null;
+  thumbnailUrl: string;
   videoUrl: string;
   publishedAt: string | Date;
   ageRating: AgeRating;
-  genres?: { id: string; name: string }[];
+  genres: GenreModel[];
+  totalComments: number;
+  durationSeconds: number;
 }
 
 export interface VideoLightModel {
   id: string;
   title: string;
-  videoUrl: string;
-  thumbnail?: string | null;
-  description?: string;
+  thumbnailUrl: string;
+  description: string;
+  durationSeconds: number;
 }
 
 export interface VideoWriteModel {
   title: string;
   description: string;
-  thumbnailFile?: File | null;
+  thumbnailFile: File | null;
   videoFile: File;
   ageRating: AgeRating;
   genreIds: string[];
 }
 
-export enum AgeRating {
-  G_0 = 'G_0',
-  G_12 = 'G_12',
-  G_16 = 'G_16',
-  G_18 = 'G_18',
-}
+export const AgeRating = {
+  G_0: 'G_0',
+  G_12: 'G_12',
+  G_16: 'G_16',
+  G_18: 'G_18'
+} as const
+
+export type AgeRating = (typeof AgeRating)[keyof typeof AgeRating]
 
 // ==== Validator ====
 export const VideoCreateValidator = yup.object({

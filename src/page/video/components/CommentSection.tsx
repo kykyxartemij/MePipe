@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useCallback, type CSSProperties } from 'react';
-import { useCreateComment } from '@/app/video/[id]/hooks/useCreateComment';
+import { useCreateComment } from '@/hooks/comment.hooks';
 import { API } from '@/lib/apiUrl';
-import type { Comment } from '@/models/comment.models';
+import type { CommentModel } from '@/models/comment.models';
 
 const PAGE_SIZE = 10;
 
@@ -43,9 +43,9 @@ export default function CommentSection({
   initialComments,
 }: {
   videoId: string;
-  initialComments: Comment[];
+  initialComments: CommentModel[];
 }) {
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [comments, setComments] = useState<CommentModel[]>(initialComments);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialComments.length === PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -57,7 +57,7 @@ export default function CommentSection({
     setLoadingMore(true);
     const nextPage = page + 1;
     try {
-      const res = await fetch(API.comment.pagedByVideo(videoId, nextPage, PAGE_SIZE));
+      const res = await fetch(API.comment.pagedByVideoId(videoId, nextPage, PAGE_SIZE));
       const data = await res.json();
       setComments((prev) => [...prev, ...data.data]);
       setHasMore(data.data.length === PAGE_SIZE);
@@ -71,7 +71,7 @@ export default function CommentSection({
   const handleComment = async () => {
     if (!commentText.trim()) return;
     createComment.mutate(commentText, {
-      onSuccess: (newComment: Comment) => {
+      onSuccess: (newComment: CommentModel) => {
         setComments((prev) => [newComment, ...prev]);
         setCommentText('');
       },

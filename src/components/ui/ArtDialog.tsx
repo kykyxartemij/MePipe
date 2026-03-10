@@ -1,0 +1,2 @@
+// TODO: Make ArtDialog with Provider. Find real example that can be used as "documentation of how to make dialog". Some what similar to Notistack's abilities.
+// Current task: "Confirm Dialog", but if possible create one dialog for every use case.

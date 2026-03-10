@@ -1,4 +1,4 @@
-import UploadForm from './components/UploadForm';
+import UploadForm from '../../page/upload/components/UploadForm';
 
 export default function Page() {
   return (

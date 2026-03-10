@@ -9,7 +9,7 @@ import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
 import path from 'path';
-import { AgeRating, VideoCreateValidator, VideoWriteModel } from '@/models/video.models';
+import { AgeRating, VideoCreateValidator, VideoModel, VideoWriteModel } from '@/models/video.models';
 import { cached, invalidateCache } from '@/lib/serverCache';
 import { CACHE_KEYS } from '@/lib/cacheKeys';
 import { ApiError } from '@/models/api-error';
@@ -72,7 +72,14 @@ export async function getVideoById(params: Promise<{ id: string }>) {
       CACHE_KEYS.video.byId(id)
     );
 
-    return NextResponse.json(video);
+
+    const { _count, ...rest } = video;
+    const result: VideoModel = {
+      ...rest,
+      totalComments: _count?.comments,
+    };
+
+    return NextResponse.json(result);
   } catch (error) {
     return handleApiError(error, 'GET video by ID');
   }
@@ -167,7 +174,7 @@ export async function createVideo(request: NextRequest) {
     const validationData: VideoWriteModel = {
       title,
       description,
-      thumbnailFile: thumbnail || undefined,
+      thumbnailFile: thumbnail,
       ageRating: ageRatingRaw,
       genreIds,
       videoFile: video,
@@ -183,45 +190,44 @@ export async function createVideo(request: NextRequest) {
     const bytes = await validatedData.videoFile.arrayBuffer();
     await writeFile(filePath, Buffer.from(bytes));
 
-    // TODO: Check what AI made ============
-    // ALSO: Add videoLength (minutes:seconds) to prisma.scheme/database
-    // Thumbnail processing
     let thumbnailPath = path.join(uploadsDir, `${filename}-thumb.jpg`);
+
+    // Helper: return video duration in seconds using ffmpeg.ffprobe
+    const getVideoDuration = async (filePath: string): Promise<number> => {
+      return new Promise((resolve, reject) => {
+        ffmpeg.ffprobe(filePath, (err: Error | null, metadata: ffmpeg.FfprobeData) => {
+          if (err) return reject(err);
+          const duration = metadata.format.duration;
+          if (typeof duration === 'number') {
+            resolve(duration);
+          } else {
+            reject(new Error('Duration not found'));
+          }
+        });
+      });
+    };
+    const duration = await getVideoDuration(filePath);
+
+    if (duration < 3) {
+      throw new ApiError('Video must be at least 3 seconds long', 400, 'VIDEO_TOO_SHORT');
+    }
+    if (duration > 3600) {
+      throw new ApiError('Video must not be longer than 60 minutes', 400, 'VIDEO_TOO_LONG');
+    }
+
     if (validatedData.thumbnailFile) {
-      // If thumbnail uploaded, process it
+      // If the client provided a thumbnail image, resize it to the target resolution
       const thumbBytes = await validatedData.thumbnailFile.arrayBuffer();
       await sharp(Buffer.from(thumbBytes))
         .resize(1280, 720, { fit: 'cover' })
         .jpeg({ quality: 80 })
         .toFile(thumbnailPath);
     } else {
-      // If no thumbnail, extract frame from video
-      // Ensure video is at least 3s
-      const getVideoDuration = async (filePath: string): Promise<number> => {
-        return new Promise((resolve, reject) => {
-          ffmpeg.ffprobe(filePath, (err: Error | null, metadata: ffmpeg.FfprobeData) => {
-            if (err) return reject(err);
-            const duration = metadata.format.duration;
-            if (typeof duration === 'number') {
-              resolve(duration);
-            } else {
-              reject(new Error('Duration not found'));
-            }
-          });
-        });
-      };
-      const duration = await getVideoDuration(filePath);
-      if (duration < 3) {
-        throw new ApiError('Video must be at least 3 seconds long', 400, 'VIDEO_TOO_SHORT');
-      }
-      if (duration > 3600) {
-        throw new ApiError('Video must not be longer than 60 minutes', 400, 'VIDEO_TOO_LONG');
-      }
-      // Extract frame at 1s
+      // No thumbnail provided: extract a single frame from the video at 2 seconds
       await new Promise((resolve, reject) => {
         ffmpeg(filePath)
           .screenshots({
-            timestamps: [1],
+            timestamps: [2],
             filename: `${filename}-thumb-temp.jpg`,
             folder: uploadsDir,
             size: '1280x720',
@@ -229,15 +235,15 @@ export async function createVideo(request: NextRequest) {
           .on('end', resolve)
           .on('error', reject);
       });
-      // Convert to jpg and crop with sharp
+      // Convert the extracted frame to the final thumbnail and crop to the exact size
       await sharp(path.join(uploadsDir, `${filename}-thumb-temp.jpg`))
         .resize(1280, 720, { fit: 'cover' })
         .jpeg({ quality: 80 })
         .toFile(thumbnailPath);
-      // Remove temp file
+
+      // Clean up temp frame
       await fs.promises.unlink(path.join(uploadsDir, `${filename}-thumb-temp.jpg`));
     }
-    // ==== End of what AI made ===============
 
     const videoRecord = await prisma.video.create({
       data: {
@@ -246,12 +252,17 @@ export async function createVideo(request: NextRequest) {
         videoUrl: `/uploads/${filename}`,
         thumbnailUrl: `/uploads/${filename}-thumb.jpg`,
         ageRating: validatedData.ageRating,
-        genres: { connect: validatedData.genreIds.map((id) => ({ id })) },
+        durationSeconds: Math.round(duration),
+        genres: { connect: validatedData.genreIds.filter(Boolean).map((id) => ({ id })) },
       },
-      include: { genres: true },
+      include: {
+        genres: true,
+        // No need to _count: comments as video just created won't have comments yet
+      },
     });
 
     invalidateCache(...CACHE_KEYS.video.invalidate());
+    await cached(() => Promise.resolve(videoRecord), CACHE_KEYS.video.byId(videoRecord.id));
 
     return NextResponse.json(videoRecord, { status: 201 });
   } catch (error) {

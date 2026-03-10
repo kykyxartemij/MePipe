@@ -7,6 +7,9 @@ YouTube clone — fullstack pet project.
 - **Frontend:** Next.js 15 (React 19), TypeScript
 - **Backend:** Next.js API Routes
 - **ORM:** Prisma 7 + Accelerate (connection pooling)
+- **Frontend:** Next.js 15 (React 19), TypeScript
+- **Backend:** Next.js API Routes
+- **ORM:** Prisma 7 + Accelerate (connection pooling)
 
 ### Local
 
@@ -29,25 +32,19 @@ YouTube clone — fullstack pet project.
 
 ```
 src/
-├── app/                    — routing (pages + API)
-│   ├── layout.tsx             root layout (Navbar, <main>)
-│   ├── page.tsx               "/" — home
-│   ├── upload/page.tsx        "/upload"
-│   ├── video/[id]/page.tsx    "/video/:id" (Server Component)
-│   └── api/                   REST endpoints
-│       ├── genres/route.ts
-│       └── videos/...
-├── components/             — reusable UI
-│   ├── Navbar.tsx
-│   ├── VideoCard.tsx
-│   ├── VideoGrid.tsx
-│   ├── UploadForm.tsx
-│   ├── CommentSection.tsx
-│   └── GenrePopover.tsx
-├── providers/
-│   └── QueryProvider.tsx   — React Query client + devtools
-└── lib/
-    └── prisma.ts           — Prisma Client singleton
+  app/                   # Next.js: route entry files (page.tsx, loading.tsx)
+    homepage/
+      page.tsx
+    video/
+      [id]/page.tsx
+  components/            # reusable UI grouped by domain (shallow)
+    ui/                  # UI primitives + shared components
+    icons/               # icon components
+  hooks/                 # domain hooks (flat): video.hooks.ts, comment.hooks.ts
+  services/              # API/service wrappers (flat): video.service.ts
+  lib/                   # infra: axiosClient, errorHandler, prisma helpers
+  models/                # types and validation schemas
+  styles/                # global styles, design tokens, shared CSS modules
 ```
 
 ## Architecture Decisions
@@ -168,6 +165,57 @@ npm run db:generate
 # Start development server
 npm run dev
 ```
+
+## Cache Strategy Comparison
+
+Below is a simple comparison between Next.js `unstable_cache` and Prisma Accelerate (Prisma-side) caching. This explains why this project uses `unstable_cache` as the main caching layer.
+
+- **Level:** Application (`unstable_cache`) vs Database proxy (Prisma Accelerate)
+- **What can be cached:** Any async function (DB calls, APIs, computations) vs Prisma queries / SQL
+- **Cache control:** Very flexible (keys, revalidate, tags) vs Limited (mainly TTL via Prisma)
+- **Invalidation:** `revalidateTag`, `revalidatePath` vs Limited invalidation options
+- **Flexibility:** Can cache any logic vs Only database queries
+- **Cost:** Free (built into Next.js) vs Free tier then paid for higher usage
+- **Vendor lock-in:** None vs Depends on Prisma's service
+- **Debugging:** Easier (app-level) vs Moderate (external proxy)
+- **Infrastructure:** Works inside Next.js vs Requires Prisma Accelerate service
+- **Best for:** Regular Next.js applications vs Distributed / edge DB caching
+
+### Why `unstable_cache` instead of Prisma's cache
+
+We chose Next.js `unstable_cache` for this project because:
+
+- It's free and built into Next.js.
+- It gives full control at the application level (keys, TTL, tags, revalidation).
+- It reduces the number of database operations by caching results close to the app.
+- It avoids vendor lock-in (no dependency on a third-party caching service).
+- It is simple to debug and change during development.
+
+What `unstable_cache` lets us do:
+
+- Cache any asynchronous function (DB, API, heavy computations).
+- Customize cache keys and change strategies in code without infra changes.
+- Control TTL and revalidation behavior per-call.
+- Use tags or targeted invalidation for precise cache updates.
+
+Example usage:
+
+```ts
+import { unstable_cache } from "next/cache"
+
+export const getPosts = unstable_cache(
+  async () => {
+    return prisma.post.findMany()
+  },
+  ["posts"],
+  {
+    revalidate: 60
+  }
+)
+```
+
+Conclusion: For this project, `unstable_cache` is the primary caching layer because it's simpler, free, fully controlled by the application, and effectively reduces database load.
+
 
 ### Deployment Options
 

@@ -17,8 +17,9 @@ model Video {
   id          String    @id @default(uuid())
   title       String
   description String    @default("")
-  thumbnailUrl   String?
+  thumbnailUrl   String
   videoUrl    String
+  durationSeconds Int
   publishedAt DateTime  @default(now())
   ageRating   AgeRating @default(G_0)
 

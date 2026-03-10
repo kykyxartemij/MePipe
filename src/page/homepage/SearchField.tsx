@@ -2,17 +2,18 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSearchField } from '@/hooks/useSearchField';
+import { useSearchField } from '@/hooks/video.hooks';
 import ArtComboBox, { ArtComboBoxOption } from '@/components/ui/ArtComboBox';
+import ArtDebounceInput from '@/components/ui/ArtDebounceInput';
 
 export default function SearchField({ initialQuery = '' }: { initialQuery?: string }) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
 
-  const { suggestions, isLoading } = useSearchField(debouncedQuery);
+  const { data: suggestions = [], isLoading } = useSearchField(debouncedQuery);
 
-  const suggestionsOptions = suggestions.map((s: string) => ({ label: s, value: s }));
+  const options = (suggestions ?? []).map((s: string) => ({ label: s, value: s }));
 
   const navigate = useCallback(
     (q: string) => {
@@ -22,8 +23,8 @@ export default function SearchField({ initialQuery = '' }: { initialQuery?: stri
     [router]
   );
 
-  const handleChange = useCallback((value: string) => {
-    setQuery(value);
+  const handleChange = useCallback((val: string) => {
+    setQuery(val);
   }, []);
 
   const handleDebouncedChange = useCallback((value: string) => {
@@ -35,14 +36,14 @@ export default function SearchField({ initialQuery = '' }: { initialQuery?: stri
       icon={{ name: 'Search', size: 18 }}
       placeholder="Search"
       clearable
-      debounceMs={300}
-      options={suggestionsOptions}
+      options={options}
       value={query}
       onChange={handleChange}
       onDebouncedChange={handleDebouncedChange}
       onSubmit={navigate}
       noOptionsMessage="No suggestions — press Enter to search"
       isLoading={isLoading}
+      debounceMs={300}
     />
   );
 }

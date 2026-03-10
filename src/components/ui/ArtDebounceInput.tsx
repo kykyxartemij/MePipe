@@ -9,6 +9,7 @@ interface ArtDebounceInputProps extends React.InputHTMLAttributes<HTMLInputEleme
   onDebouncedChange?: (value: string) => void;
 }
 
+// TODO: Full renovate. Doesn't work as expected. Also to make thing more reusable more debounce logic to separate file and just use it in ArtInput as prop
 const ArtDebounceInput = forwardRef<HTMLInputElement, ArtDebounceInputProps>(
   ({ debounceMs = 300, onChange, onDebouncedChange, ...rest }, ref) => {
     const debouncedRef = useRef(onDebouncedChange);

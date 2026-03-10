@@ -18,16 +18,10 @@
 }
 
 body {
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  @apply min-h-screen leading-6;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
-  min-height: 100vh;
 }
 
 a {
@@ -38,190 +32,81 @@ a:hover {
   text-decoration: underline;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  padding: 0.5em 1em;
-  font-size: 0.9rem;
-  font-family: inherit;
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-button:hover {
-  border-color: var(--primary);
-}
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+@layer components {
+  .btn {
+    @apply rounded-lg border px-4 py-2 text-sm transition-colors;
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+  }
+  .btn:hover { border-color: var(--primary); }
+  .btn:disabled { @apply opacity-50 cursor-not-allowed; }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:opacity-90;
+  }
+
+  .art-input-wrapper { @apply flex flex-col w-full; }
+  .art-input-inner { @apply relative flex w-full; }
+
+  .art-input {
+    @apply w-full min-w-[10rem] min-h-[2.25rem] text-sm rounded-md px-3 py-2;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+  }
+
+  .art-textarea { @apply w-full min-w-[10rem] min-h-[2.25rem] p-2 text-sm rounded-md; }
+  .art-textarea { resize: vertical; }
+
+  .art-input-icon {
+    @apply absolute left-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)];
+    pointer-events: none;
+  }
+
+  .art-input-clear {
+    @apply absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+  .art-input-clear:hover { color: var(--text); background: var(--border); }
+
+  .art-field-helper { @apply text-[0.78rem] mt-1 leading-[1.3]; color: #e06464; }
+
+  .navbar { @apply flex items-center gap-4 px-6 py-2 border-b; border-color: var(--border); background: var(--surface); }
+  .navbar-logo { @apply font-bold text-lg text-[var(--text)]; white-space:nowrap; }
+  .navbar-search { @apply flex-1 max-w-[540px] mx-auto; }
+  .navbar-upload { @apply text-[var(--text-muted)] flex items-center transition-colors; }
+  .navbar-upload:hover { color: var(--text); }
+
+  .art-combobox { @apply relative w-full; }
+  .art-combobox-list {
+    @apply absolute top-full left-0 right-0 mt-1 p-1 list-none rounded-md shadow-lg z-50 max-h-80 overflow-y-auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .art-combobox-option { @apply px-3 py-2 cursor-pointer text-sm transition-colors; }
+  .art-combobox-option--active,
+  .art-combobox-option:hover { background: var(--border); }
 }
 
-input,
-textarea {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.5em 0.75em;
-  font-size: 0.9rem;
-  font-family: inherit;
-  background: var(--surface);
-  color: var(--text);
-  width: 100%;
-}
-input:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--primary);
+/* small utilities not covered by Tailwind tokens */
+input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+
+/* Shimmer skeleton used by loading placeholders */
+@layer utilities {
+  .shimmer {
+    background: linear-gradient(90deg, #1a1a1a 25%, #333 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: 6px;
+  }
 }
 
-/* ArtInput / ArtTextarea */
-:root {
-  --field-adornment-color: var(--text-muted);
-  --field-adornment-inset: 0.6rem;
-  --field-helper-color: #e06464;
-}
+@keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
 
-.art-input-wrapper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.art-input-inner {
-  position: relative;
-  display: flex;
-  width: 100%;
-}
-
-.art-input,
-.art-textarea {
-  width: 100%;
-  min-width: 10rem;
-  min-height: 2.25rem;
-}
-
-.art-textarea .art-textarea {
-  resize: vertical;
-}
-
-/* shared: icon (left) and clear button (right) */
-.art-input-icon,
-.art-input-clear {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--field-adornment-color);
-  pointer-events: none;
-}
-
-.art-input-icon {
-  left: var(--field-adornment-inset);
-}
-
-.art-input-clear {
-  right: var(--field-adornment-inset);
-  padding: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 50%;
-  outline: none;
-  pointer-events: auto;
-  transition:
-    color 0.15s,
-    background 0.15s;
-}
-
-.art-input-clear:hover {
-  color: var(--text);
-  background: var(--border);
-  border-color: transparent;
-}
-
-.art-textarea-clear {
-  top: var(--field-adornment-inset);
-  transform: none;
-}
-
-.art-field-helper {
-  font-size: 0.78rem;
-  margin-top: 4px;
-  color: var(--field-helper-color);
-  line-height: 1.3;
-}
-
-/* Navbar */
-.navbar {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  gap: 1rem;
-}
-
-.navbar-logo {
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--text);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.navbar-search {
-  flex: 1;
-  max-width: 540px;
-  margin: 0 auto;
-}
-
-.navbar-upload {
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  transition: color 0.15s;
-}
-
-.navbar-upload:hover {
-  color: var(--text);
-  text-decoration: none;
-}
-
-/* ComboBox */
-.art-combobox {
-  position: relative;
-  width: 100%;
-}
-
-.art-combobox-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin: 4px 0 0;
-  padding: 4px 0;
-  list-style: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  z-index: 100;
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.art-combobox-option {
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.1s;
-}
-
-.art-combobox-option--active,
-.art-combobox-option:hover {
-  background: var(--border);
-}

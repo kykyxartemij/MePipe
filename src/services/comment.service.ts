@@ -45,7 +45,7 @@ export async function getCommentById(request: NextRequest, params: Promise<{ id:
     const id = parseIdFromRoute(await params);
     const comment = await cached(
       () =>
-        prisma.comment.findUnique({
+        prisma.comment.findUniqueOrThrow({
           where: { id },
         }),
       CACHE_KEYS.comment.byId(id)
@@ -68,6 +68,7 @@ export async function createComment(request: NextRequest, params: Promise<{ id: 
     });
 
     invalidateCache(...CACHE_KEYS.comment.invalidate());
+    await cached(() => Promise.resolve(comment), CACHE_KEYS.comment.byId(comment.id));
 
     // Return the created comment with 201 status
     return NextResponse.json(comment, { status: 201 });

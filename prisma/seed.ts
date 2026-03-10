@@ -1,4 +1,5 @@
 import { prisma } from '../src/lib/prisma';
+import { Prisma } from '../generated/prisma/client';
 
 const genres = [
   'Gaming',
@@ -216,25 +217,50 @@ async function main() {
   }
 
   console.log('Seeding sample videos...');
+
+  // Fetch genres once and map names -> ids to avoid repeated DB queries
+  const allGenres = await prisma.genre.findMany();
+  const genreByName = new Map(allGenres.map((g) => [g.name, g.id]));
+
+  // Check which sample videos already exist in a single query
+  const sampleTitles = sampleVideos.map((v) => v.title);
+  const existingVideos = await prisma.video.findMany({
+    where: { title: { in: sampleTitles } },
+    select: { title: true },
+  });
+  const existingTitles = new Set(existingVideos.map((v) => v.title));
+
+  // Prepare create operations only for missing videos
+  const createOps: Array<Prisma.PrismaPromise<any>> = [];
+  const MIN_DURATION = 4; // seconds
+  const MAX_DURATION = 59 * 60; // 59 minutes in seconds
+  const randDuration = () => Math.floor(Math.random() * (MAX_DURATION - MIN_DURATION + 1)) + MIN_DURATION;
+
   for (let i = 0; i < sampleVideos.length; i++) {
     const v = sampleVideos[i];
-    const genreRecords = await prisma.genre.findMany({
-      where: { name: { in: v.genreNames } },
-    });
-    const genreIds = genreRecords.map((g) => g.id);
+    if (existingTitles.has(v.title)) continue;
 
-    const existing = await prisma.video.findFirst({ where: { title: v.title } });
-    if (!existing) {
-      await prisma.video.create({
+    const genreIds = (v.genreNames || [])
+      .map((n) => genreByName.get(n))
+      .filter(Boolean) as string[];
+
+    createOps.push(
+      prisma.video.create({
         data: {
           title: v.title,
           description: v.description,
           videoUrl: v.videoUrl,
-          thumbnail: `https://picsum.photos/seed/mepipe${i}/640/360`,
+          thumbnailUrl: `https://picsum.photos/seed/mepipe${i}/640/360`,
+          durationSeconds: randDuration(),
           genres: { connect: genreIds.map((id) => ({ id })) },
         },
-      });
-    }
+      })
+    );
+  }
+
+  if (createOps.length > 0) {
+    // Execute all creates in a single transaction to reduce round trips
+    await prisma.$transaction(createOps);
   }
 
   console.log('Done seeding.');

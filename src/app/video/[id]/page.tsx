@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import CommentSection from './components/CommentSection';
-import VideoPlayer from './components/VideoPlayer';
-import SimilarVideos from './components/SimilarVideos';
+import CommentSection from '../../../page/video/components/CommentSection';
+import VideoPlayer from '../../../page/video/components/VideoPlayer';
+import SimilarVideos from '../../../page/video/components/SimilarVideos';
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

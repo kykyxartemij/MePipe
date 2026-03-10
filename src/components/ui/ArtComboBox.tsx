@@ -14,27 +14,27 @@ interface ArtComboBoxProps {
   options: ArtComboBoxOption[];
   value: string;
   onChange: (value: string) => void;
-  onDebouncedChange?: (value: string) => void;
   onSubmit?: (value: string) => void;
   placeholder?: string;
   icon?: ArtIconProps;
   clearable?: boolean;
-  debounceMs?: number;
+  debounce?: boolean | number;
   noOptionsMessage?: string;
   isLoading?: boolean;
 }
+
+// TODO: Update based on other components updates.
 
 const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) => {
   const {
     options,
     value,
     onChange,
-    onDebouncedChange,
     onSubmit,
     placeholder,
     icon,
     clearable,
-    debounceMs,
+    debounce,
     noOptionsMessage,
     isLoading,
   } = props;
@@ -44,7 +44,16 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const hasOptions = options.length > 0;
+  const debounceMs = typeof debounce === 'number' ? debounce : debounce ? 300 : undefined;
   const useDebounce = debounceMs !== undefined && debounceMs > 0;
+
+  // When debouncing, keep an internal value for immediate UI updates
+  const [internalValue, setInternalValue] = useState<string>(value);
+  // keep internalValue in sync when parent updates value (non-debounce mode parent controls directly)
+  useEffect(() => {
+    if (!useDebounce) return;
+    setInternalValue(value);
+  }, [value, useDebounce]);
 
   // Close on outside click
   useEffect(() => {
@@ -97,7 +106,8 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    if (useDebounce) setInternalValue(e.target.value);
+    else onChange(e.target.value);
     setOpen(true);
   };
 
@@ -106,7 +116,7 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     icon,
     clearable,
     placeholder,
-    value,
+    value: useDebounce ? internalValue : value,
     onKeyDown: handleKeyDown,
     onFocus: () => hasOptions && setOpen(true),
   };
@@ -118,7 +128,10 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
           {...sharedProps}
           debounceMs={debounceMs}
           onChange={handleChange}
-          onDebouncedChange={onDebouncedChange}
+          onDebouncedChange={(val: string) => {
+            // call single onChange after debounce
+            onChange(val);
+          }}
         />
       ) : (
         <ArtInput {...sharedProps} onChange={handleChange} />

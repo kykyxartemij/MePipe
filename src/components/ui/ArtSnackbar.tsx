@@ -1,0 +1,2 @@
+// TODO: Make a custom copy of Notistack's Snackbar. Notistack is old + get experience with building such components.
+// Do not forget, max X snackbar at the same time + same message but multiple times should be understandable on ui, auto hide after 3 seconds, and pause hide timer on hover. 

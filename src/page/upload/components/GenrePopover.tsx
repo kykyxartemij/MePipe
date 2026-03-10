@@ -1,6 +1,6 @@
 'use client';
 
-import type { Genre } from '@/models/genre.models';
+import type { GenreModel } from '@/models/genre.models';
 
 export default function GenrePopover({
   open,
@@ -10,7 +10,7 @@ export default function GenrePopover({
   onClose,
 }: {
   open: boolean;
-  genres: Genre[];
+  genres: GenreModel[];
   selected: string[];
   onSelect: (ids: string[]) => void;
   onClose: () => void;
