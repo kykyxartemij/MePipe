@@ -21,7 +21,7 @@ export const useCommentById = (commentId: string) => {
   return useQuery<CommentModel, ApiError>({
     queryKey: queryKeys.comment.byId(commentId),
     queryFn: async () => {
-      const res = await axios.get<CommentModel>(`some/random/path/doesNotExist/${commentId}`);
+      const res = await axios.get<CommentModel>(`some/random/path/doesNotExist/ThisIsExample/${commentId}`);
       return res.data;
     },
     enabled: !!commentId,

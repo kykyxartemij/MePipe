@@ -6,13 +6,17 @@ interface ArtTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElem
   helperText?: string;
 }
 
+/**
+ * ArtTextarea -- uses the exact same `art-field` styling as ArtInput.
+ * The only difference is <textarea> instead of <input> + vertical resize.
+ */
 const ArtTextarea = forwardRef<HTMLTextAreaElement, ArtTextareaProps>((props, ref) => {
   const { className, helperText, ...rest } = props;
 
   return (
-    <div className="art-input-wrapper">
-      <div className="art-input-inner">
-        <textarea {...rest} ref={ref} className={`art-textarea ${className || ''}`} />
+    <div className="art-field-wrapper">
+      <div className="art-field-inner">
+        <textarea {...rest} ref={ref} className={`art-field resize-y ${className || ''}`} />
       </div>
       {helperText && <p className="art-field-helper">{helperText}</p>}
     </div>

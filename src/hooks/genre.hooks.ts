@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios, { AxiosError } from 'axios';
+import axios from '@/lib/axiosClient';
 import { API } from '@/lib/apiUrl';
 import { queryKeys } from '@/lib/queryKeys';
 import { GenreModel, GenrePrismaModel } from '@/models/genre.models';

@@ -2,8 +2,8 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { API } from '@/lib/apiUrl';
 import { queryKeys } from '@/lib/queryKeys';
 import { VideoLightModel, VideoModel } from '@/models/video.models';
-import { PaginatedResponse } from '@/models/paginated-response.model';
-import axios from 'axios';
+import { PaginatedResponse, getNextPage } from '@/models/paginated-response.model';
+import axios from '@/lib/axiosClient';
 import type { AxiosProgressEvent, AxiosError } from 'axios';
 import { ApiError } from '@/models/api-error';
 
@@ -15,8 +15,7 @@ export const usePagedVideos = (page: number, pageSize: number, freeText?: string
       return res.data;
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.data.length < lastPage.pageSize ? undefined : lastPage.page + 1,
+    getNextPageParam: getNextPage,
   });
 };
 

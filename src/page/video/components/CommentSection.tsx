@@ -1,103 +1,55 @@
 'use client';
 
-import { useState, useCallback, type CSSProperties } from 'react';
-import { useCreateComment } from '@/hooks/comment.hooks';
-import { API } from '@/lib/apiUrl';
+import { useState } from 'react';
+import { usePagedCommentsByVideoId, useCreateComment } from '@/hooks/comment.hooks';
+import ArtInput from '@/components/ui/ArtInput';
 import type { CommentModel } from '@/models/comment.models';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 100;
 
-const wrapStyle: CSSProperties = { marginTop: 24 };
-
-const inputRow: CSSProperties = {
-  display: 'flex',
-  gap: 8,
-  marginBottom: 16,
-};
-
-const commentStyle: CSSProperties = {
-  borderBottom: '1px solid #333',
-  padding: '10px 0',
-  fontSize: 14,
-};
-
-const dateStyle: CSSProperties = {
-  fontSize: 12,
-  color: '#666',
-  marginBottom: 4,
-};
-
-const loadMoreBtn: CSSProperties = {
-  marginTop: 12,
-  padding: '8px 20px',
-  background: '#222',
-  color: '#ccc',
-  border: '1px solid #444',
-  borderRadius: 8,
-  cursor: 'pointer',
-  fontSize: 13,
-};
-
-export default function CommentSection({
-  videoId,
-  initialComments,
-}: {
-  videoId: string;
-  initialComments: CommentModel[];
-}) {
-  const [comments, setComments] = useState<CommentModel[]>(initialComments);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(initialComments.length === PAGE_SIZE);
-  const [loadingMore, setLoadingMore] = useState(false);
+export default function CommentSection({ videoId }: { videoId: string }) {
+  const [localComments, setLocalComments] = useState<CommentModel[]>([]);
   const [commentText, setCommentText] = useState('');
 
+  const { data, isLoading } = usePagedCommentsByVideoId(videoId, 1, PAGE_SIZE);
   const createComment = useCreateComment(videoId);
 
-  const loadMore = useCallback(async () => {
-    setLoadingMore(true);
-    const nextPage = page + 1;
-    try {
-      const res = await fetch(API.comment.pagedByVideoId(videoId, nextPage, PAGE_SIZE));
-      const data = await res.json();
-      setComments((prev) => [...prev, ...data.data]);
-      setHasMore(data.data.length === PAGE_SIZE);
-      setPage(nextPage);
-    } catch {
-      /* ignore */
-    }
-    setLoadingMore(false);
-  }, [videoId, page]);
+  const serverComments = data?.data ?? [];
+  const comments = [...localComments, ...serverComments];
 
-  const handleComment = async () => {
-    if (!commentText.trim()) return;
-    createComment.mutate(commentText, {
+  const handleComment = () => {
+    const text = commentText.trim();
+    if (!text) return;
+    createComment.mutate(text, {
       onSuccess: (newComment: CommentModel) => {
-        setComments((prev) => [newComment, ...prev]);
+        setLocalComments((prev) => [newComment, ...prev]);
         setCommentText('');
       },
     });
   };
 
   return (
-    <div style={wrapStyle}>
-      <h3 style={{ marginBottom: 12 }}>Comments</h3>
+    <div className="mt-6">
+      <h3 className="mb-3 font-semibold">Comments</h3>
 
-      <div style={inputRow}>
-        <input
-          type="text"
+      <div className="flex gap-2 mb-4">
+        <ArtInput
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           placeholder="Add a comment..."
           onKeyDown={(e) => e.key === 'Enter' && handleComment()}
-          style={{ flex: 1 }}
         />
-        <button onClick={handleComment}>Send</button>
+        <button className="btn" onClick={handleComment} disabled={createComment.isPending}>
+          {createComment.isPending ? 'Sending...' : 'Send'}
+        </button>
       </div>
+
+      {isLoading && <p className="text-sm text-[var(--text-muted)]">Loading comments...</p>}
 
       <div>
         {comments.map((c) => (
-          <div key={c.id} style={commentStyle}>
-            <div style={dateStyle}>
+          <div key={c.id} className="border-b border-[var(--border)] py-2.5 text-sm">
+            <div className="text-xs text-[var(--text-muted)] mb-1">
               {new Date(c.createdAt).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -108,12 +60,6 @@ export default function CommentSection({
           </div>
         ))}
       </div>
-
-      {hasMore && (
-        <button style={loadMoreBtn} onClick={loadMore} disabled={loadingMore}>
-          {loadingMore ? 'Loading...' : 'Show more comments'}
-        </button>
-      )}
     </div>
   );
 }

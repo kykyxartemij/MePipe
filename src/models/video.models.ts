@@ -15,7 +15,6 @@ export interface VideoModel {
   publishedAt: string | Date;
   ageRating: AgeRating;
   genres: GenreModel[];
-  totalComments: number;
   durationSeconds: number;
 }
 

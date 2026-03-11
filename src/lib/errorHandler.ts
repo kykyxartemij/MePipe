@@ -1,7 +1,7 @@
 // Centralized API error handling. Maps known error shapes to HTTP responses.
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { ApiError } from '@/models/api-error';
 
 export function handleApiError(error: any, context: string) {

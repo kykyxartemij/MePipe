@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { normalizeText } from '@/lib/freeText';
-import { parseIdFromRoute } from '@/models';
+import { parseIdFromRoute, tryParseUuid } from '@/models';
 import { parsePaginationFromUrl, createPaginatedResponse } from '@/models/paginated-response.model';
 import { handleApiError } from '@/lib/errorHandler';
 import { writeFile, mkdir } from 'fs/promises';
@@ -9,7 +9,7 @@ import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
 import path from 'path';
-import { AgeRating, VideoCreateValidator, VideoModel, VideoWriteModel } from '@/models/video.models';
+import { AgeRating, VideoCreateValidator, VideoWriteModel } from '@/models/video.models';
 import { cached, invalidateCache } from '@/lib/serverCache';
 import { CACHE_KEYS } from '@/lib/cacheKeys';
 import { ApiError } from '@/models/api-error';
@@ -21,7 +21,10 @@ export async function getPagedVideos(request: NextRequest) {
     const { page, pageSize } = await parsePaginationFromUrl(searchParams);
     const freeText = normalizeText(searchParams.get('freeText') ?? '');
 
-    const where = freeText
+    const parsedId = freeText ? tryParseUuid(freeText) : null;
+    const where = parsedId
+      ? { id: parsedId }
+      : freeText
       ? {
           OR: [
             { title: { contains: freeText, mode: 'insensitive' as const } },
@@ -37,12 +40,12 @@ export async function getPagedVideos(request: NextRequest) {
           skip: (page - 1) * pageSize,
           take: pageSize,
           orderBy: { publishedAt: 'desc' },
-          include: { genres: true },
           select: {
             id: true,
             title: true,
             thumbnailUrl: true,
             description: true,
+            durationSeconds: true,
           },
         }),
       CACHE_KEYS.video.paged(page, pageSize, freeText)
@@ -58,28 +61,17 @@ export async function getPagedVideos(request: NextRequest) {
 export async function getVideoById(params: Promise<{ id: string }>) {
   try {
     const id = parseIdFromRoute(await params);
+
     const video = await cached(
       () =>
         prisma.video.findUniqueOrThrow({
           where: { id },
-          include: {
-            genres: true,
-            _count: {
-              select: { comments: true },
-            },
-          },
+          include: { genres: true },
         }),
       CACHE_KEYS.video.byId(id)
     );
 
-
-    const { _count, ...rest } = video;
-    const result: VideoModel = {
-      ...rest,
-      totalComments: _count?.comments,
-    };
-
-    return NextResponse.json(result);
+    return NextResponse.json(video);
   } catch (error) {
     return handleApiError(error, 'GET video by ID');
   }
@@ -89,7 +81,6 @@ export async function getVideoById(params: Promise<{ id: string }>) {
 export async function getSimilarVideos(request: NextRequest, params: Promise<{ id: string }>) {
   try {
     const id = parseIdFromRoute(await params);
-
     const { searchParams } = request.nextUrl;
     const { page, pageSize } = await parsePaginationFromUrl(searchParams);
 
@@ -116,9 +107,9 @@ export async function getSimilarVideos(request: NextRequest, params: Promise<{ i
           select: {
             id: true,
             title: true,
-            videoUrl: true,
             thumbnailUrl: true,
             description: true,
+            durationSeconds: true,
           },
         }),
       CACHE_KEYS.video.similar(id, page, pageSize)
@@ -153,7 +144,7 @@ export async function getSearchSuggestions(request: NextRequest) {
       CACHE_KEYS.video.search(freeText)
     );
 
-    return NextResponse.json(videos);
+    return NextResponse.json(videos.map((v) => v.title));
   } catch (error) {
     return handleApiError(error, 'GET search suggestions');
   }
@@ -255,10 +246,7 @@ export async function createVideo(request: NextRequest) {
         durationSeconds: Math.round(duration),
         genres: { connect: validatedData.genreIds.filter(Boolean).map((id) => ({ id })) },
       },
-      include: {
-        genres: true,
-        // No need to _count: comments as video just created won't have comments yet
-      },
+      include: { genres: true },
     });
 
     invalidateCache(...CACHE_KEYS.video.invalidate());

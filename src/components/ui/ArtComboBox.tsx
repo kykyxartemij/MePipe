@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect, forwardRef } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useCallback } from 'react';
 import ArtInput from './ArtInput';
-import ArtDebounceInput from './ArtDebounceInput';
-import { ArtIconProps } from './ArtIcon';
+import type { ArtIconProps } from './ArtIcon';
 
 export interface ArtComboBoxOption {
   label: string;
@@ -18,12 +17,13 @@ interface ArtComboBoxProps {
   placeholder?: string;
   icon?: ArtIconProps;
   clearable?: boolean;
-  debounce?: boolean | number;
+  /** false = no debounce (default), number = debounce in ms */
+  debounceMs?: false | number;
+  /** Fires after `debounceMs` ms of inactivity */
+  onDebouncedChange?: (value: string) => void;
   noOptionsMessage?: string;
   isLoading?: boolean;
 }
-
-// TODO: Update based on other components updates.
 
 const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) => {
   const {
@@ -34,7 +34,8 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     placeholder,
     icon,
     clearable,
-    debounce,
+    debounceMs = false,
+    onDebouncedChange,
     noOptionsMessage,
     isLoading,
   } = props;
@@ -44,16 +45,6 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const hasOptions = options.length > 0;
-  const debounceMs = typeof debounce === 'number' ? debounce : debounce ? 300 : undefined;
-  const useDebounce = debounceMs !== undefined && debounceMs > 0;
-
-  // When debouncing, keep an internal value for immediate UI updates
-  const [internalValue, setInternalValue] = useState<string>(value);
-  // keep internalValue in sync when parent updates value (non-debounce mode parent controls directly)
-  useEffect(() => {
-    if (!useDebounce) return;
-    setInternalValue(value);
-  }, [value, useDebounce]);
 
   // Close on outside click
   useEffect(() => {
@@ -71,11 +62,14 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     setActiveIdx(-1);
   }, [options]);
 
-  const select = (val: string) => {
-    onChange(val);
-    setOpen(false);
-    onSubmit?.(val);
-  };
+  const select = useCallback(
+    (val: string) => {
+      onChange(val);
+      setOpen(false);
+      onSubmit?.(val);
+    },
+    [onChange, onSubmit],
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!open || !hasOptions) {
@@ -106,41 +100,31 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (useDebounce) setInternalValue(e.target.value);
-    else onChange(e.target.value);
+    onChange(e.target.value);
     setOpen(true);
-  };
-
-  const sharedProps = {
-    ref,
-    icon,
-    clearable,
-    placeholder,
-    value: useDebounce ? internalValue : value,
-    onKeyDown: handleKeyDown,
-    onFocus: () => hasOptions && setOpen(true),
   };
 
   return (
     <div className="art-combobox" ref={wrapperRef}>
-      {useDebounce ? (
-        <ArtDebounceInput
-          {...sharedProps}
-          debounceMs={debounceMs}
-          onChange={handleChange}
-          onDebouncedChange={(val: string) => {
-            // call single onChange after debounce
-            onChange(val);
-          }}
-        />
-      ) : (
-        <ArtInput {...sharedProps} onChange={handleChange} />
-      )}
+      <ArtInput
+        ref={ref}
+        icon={icon}
+        clearable={clearable}
+        placeholder={placeholder}
+        value={value}
+        debounce={debounceMs}
+        onDebouncedChange={onDebouncedChange}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onFocus={() => hasOptions && setOpen(true)}
+      />
       {open && hasOptions && (
-        <ul className="art-combobox-list">
+        <ul className="art-combobox-list" role="listbox">
           {options.map((opt, i) => (
             <li
               key={opt.value}
+              role="option"
+              aria-selected={i === activeIdx}
               className={`art-combobox-option ${i === activeIdx ? 'art-combobox-option--active' : ''}`}
               onMouseEnter={() => setActiveIdx(i)}
               onMouseDown={(e) => {
@@ -155,7 +139,7 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
       )}
       {open && !hasOptions && value.trim().length > 0 && (
         <ul className="art-combobox-list">
-          <li className="art-combobox-option" style={{ color: '#888', cursor: 'default' }}>
+          <li className="art-combobox-option art-combobox-option--muted">
             {isLoading ? 'Loading...' : noOptionsMessage}
           </li>
         </ul>

@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <QueryProvider>
           <Navbar />
-          <main style={{ maxWidth: '85%', margin: '0 auto', padding: '1.5rem' }}>{children}</main>
+          <main className="w-full px-8 py-6">{children}</main>
         </QueryProvider>
       </body>
     </html>

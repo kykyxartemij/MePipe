@@ -9,7 +9,6 @@ export type IconName = keyof IconMap;
 export interface ArtIconProps extends React.SVGProps<SVGSVGElement> {
   name: IconName;
   size?: number | string;
-  label?: string; // TODO: Make it tooltip
 }
 
 const ArtIcon: React.FC<ArtIconProps> = ({ name, size = 16, className, ...rest }) => {

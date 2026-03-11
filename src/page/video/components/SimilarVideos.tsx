@@ -6,7 +6,7 @@ import type { VideoLightModel } from '@/models/video.models';
 import VideoCard, { VideoCardSkeleton } from '../VideoCard';
 
 export default function SimilarVideos({ videoId }: { videoId: string }) {
-  const { data, isLoading } = useSimilarVideos(videoId, 1, 8);
+  const { data, isLoading } = useSimilarVideos(videoId, 1, 75);
 
   const videos = data?.data ?? [];
 
