@@ -4,6 +4,7 @@ import { API } from '@/lib/apiUrl';
 import { queryKeys } from '@/lib/queryKeys';
 import { GenreModel, GenrePrismaModel } from '@/models/genre.models';
 import { ApiError } from '@/models/api-error';
+import { useArtSnackbar } from '@/components/ui/ArtSnackbar';
 
 export const useGenres = () => {
   // NOTE: Typing e.g. useQuery<GenreModel[], AxiosError> only affects TypeScript checks, not what actually arrives at runtime.
@@ -18,6 +19,7 @@ export const useGenres = () => {
 
 export const useCreateGenre = () => {
   const queryClient = useQueryClient();
+  const { enqueueError, enqueueSuccess } = useArtSnackbar();
   return useMutation<GenreModel, ApiError, string>({
     mutationFn: async (name: string) => {
       const res = await axios.post<GenreModel>(API.genre.create(), { name });
@@ -25,6 +27,8 @@ export const useCreateGenre = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.genre.invalidate.all() });
+      enqueueSuccess('Genre created!');
     },
+    onError: (err) => enqueueError(err),
   });
 };

@@ -1,27 +1,24 @@
+import VideoPage from '@/page/video/VideoPage';
+import ArtSkeleton from '@/components/ui/ArtSkeleton';
+import { VideoCardSkeleton } from '@/page/video/VideoCard';
+
 export default function Loading() {
   return (
-    <div className="video-page">
-      <div className="video-main">
-        <div className="shimmer w-full rounded-xl" style={{ aspectRatio: '16/9' }} />
-        <div className="shimmer h-6 w-3/5 mt-3" />
-        <div className="flex gap-1.5 mt-2">
-          {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="shimmer h-5 w-16 rounded-full" />
+    <div className="flex gap-6 max-lg:flex-col">
+      <div className="flex-1 min-w-0">
+        <VideoPage loading />
+        <div className="mt-6 space-y-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <ArtSkeleton key={i} className="h-14 w-full rounded-lg" />
           ))}
         </div>
-        <div className="shimmer h-3.5 w-4/5 mt-3" />
-        <div className="shimmer h-3.5 w-2/5 mt-2" />
       </div>
-      <aside className="video-sidebar">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="flex gap-2 p-1 mb-2">
-            <div className="shimmer rounded-lg" style={{ width: 168, minWidth: 168, aspectRatio: '16/9' }} />
-            <div className="flex-1">
-              <div className="shimmer h-3.5 w-11/12 mb-2" />
-              <div className="shimmer h-2.5 w-8/12" />
-            </div>
-          </div>
-        ))}
+      <aside className="w-100 min-w-85 max-lg:w-full max-lg:min-w-0">
+        <div className="flex flex-col gap-3.5">
+          {Array.from({ length: 8 }, (_, i) => (
+            <VideoCardSkeleton key={i} horizontal />
+          ))}
+        </div>
       </aside>
     </div>
   );

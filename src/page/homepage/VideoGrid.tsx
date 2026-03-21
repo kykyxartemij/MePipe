@@ -6,7 +6,7 @@ import type { VideoLightModel } from '@/models/video.models';
 import type { PaginatedResponse } from '@/models/paginated-response.model';
 import VideoCard, { VideoCardSkeleton } from '../video/VideoCard';
 
-const SKELETON_COUNT = 8;
+const SKELETON_COUNT = 20;
 
 export default function VideoGrid({ search = '' }: { search?: string }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -38,7 +38,7 @@ export default function VideoGrid({ search = '' }: { search?: string }) {
     <>
       {isError && <p className="text-red-500 mt-4">Failed to load videos.</p>}
 
-      <div className="video-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {isLoading
           ? Array.from({ length: SKELETON_COUNT }, (_, i) => <VideoCardSkeleton key={i} />)
           : videos.map((video: VideoLightModel) => <VideoCard key={video.id} video={video} />)}
@@ -48,7 +48,7 @@ export default function VideoGrid({ search = '' }: { search?: string }) {
       </div>
 
       {!isLoading && videos.length === 0 && (
-        <p className="text-[var(--text-muted)] mt-8">No videos found.</p>
+        <p className="text-muted mt-8">No videos found.</p>
       )}
 
       {/* Invisible sentinel that triggers the next page load */}

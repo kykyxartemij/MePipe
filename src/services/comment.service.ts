@@ -6,7 +6,7 @@ import { CommentCreateValidator } from '@/models/comment.models';
 import { parseIdFromRoute } from '@/models';
 import { parsePaginationFromUrl, createPaginatedResponse } from '@/models/paginated-response.model';
 import { handleApiError } from '@/lib/errorHandler';
-import { addCacheNumber, cached, cachedNumber, invalidateCache } from '@/lib/serverCache';
+import { cached, invalidateCache } from '@/lib/serverCache';
 import { CACHE_KEYS } from '@/lib/cacheKeys';
 
 // ==== GET ====
@@ -27,14 +27,14 @@ export async function getPagedCommentsByVideoId(
           prisma.comment.findMany({
             where: { videoId: id },
             orderBy: { createdAt: 'desc' },
-            skip: (page - 1) * pageSize,
+            skip: page * pageSize,
             take: pageSize,
           }),
         CACHE_KEYS.comment.paged(id, page, pageSize)
       ),
-      cachedNumber(
-        CACHE_KEYS.comment.count(id),
+      cached(
         () => prisma.comment.count({ where: { videoId: id } }),
+        CACHE_KEYS.comment.count(id)
       ),
     ]);
 
@@ -72,7 +72,6 @@ export async function createComment(request: NextRequest, params: Promise<{ id: 
 
     invalidateCache(...CACHE_KEYS.comment.invalidate());
     await cached(() => Promise.resolve(comment), CACHE_KEYS.comment.byId(comment.id));
-    await addCacheNumber(CACHE_KEYS.comment.count(id));
 
     return NextResponse.json(comment, { status: 201 });
   } catch (error) {

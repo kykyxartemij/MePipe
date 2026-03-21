@@ -1,3 +1,4 @@
+export { default as ChevronDown } from './ChevronDown';
 export { default as Search } from './Search';
 export { default as Like } from './Like';
 export { default as Dislike } from './Dislike';
@@ -11,3 +12,4 @@ export { default as ExitFullscreen } from './ExitFullscreen';
 export { default as Theater } from './Theater';
 export { default as Volume } from './Volume';
 export { default as VolumeMuted } from './VolumeMuted';
+export { default as Check } from './Check';

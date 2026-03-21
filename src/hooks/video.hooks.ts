@@ -4,8 +4,9 @@ import { queryKeys } from '@/lib/queryKeys';
 import { VideoLightModel, VideoModel } from '@/models/video.models';
 import { PaginatedResponse, getNextPage } from '@/models/paginated-response.model';
 import axios from '@/lib/axiosClient';
-import type { AxiosProgressEvent, AxiosError } from 'axios';
+import type { AxiosProgressEvent, AxiosRequestConfig  } from 'axios';
 import { ApiError } from '@/models/api-error';
+import { useArtSnackbar } from '@/components/ui/ArtSnackbar';
 
 export const usePagedVideos = (page: number, pageSize: number, freeText?: string) => {
   return useInfiniteQuery<PaginatedResponse<VideoLightModel>, ApiError>({
@@ -19,14 +20,14 @@ export const usePagedVideos = (page: number, pageSize: number, freeText?: string
   });
 };
 
-export const useById = (id: string) => {
+export const useById = (id: string, { enabled = true }: { enabled?: boolean } = {}) => {
   return useQuery<VideoModel, ApiError>({
     queryKey: queryKeys.video.byId(id),
     queryFn: async () => {
       const res = await axios.get<VideoModel>(API.video.byId(id));
       return res.data;
     },
-    enabled: !!id,
+    enabled: enabled && !!id,
   });
 };
 
@@ -54,6 +55,7 @@ export const useSearchField = (freeText: string) => {
 
 export const useCreateVideo = (callbacks?: { onUploadProgress?: (pct: number) => void }) => {
   const queryClient = useQueryClient();
+  const { enqueueError, enqueueSuccess } = useArtSnackbar();
   return useMutation<VideoModel, ApiError, FormData>({
     mutationFn: async (formData: FormData) => {
       const res = await axios.post<VideoModel>(API.video.create(), formData, {
@@ -67,6 +69,8 @@ export const useCreateVideo = (callbacks?: { onUploadProgress?: (pct: number) =>
     onSuccess: (created: VideoModel) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.video.invalidate.list() });
       queryClient.setQueryData<VideoModel>(queryKeys.video.byId(created.id), created);
+      enqueueSuccess('Video uploaded!');
     },
+    onError: (err) => enqueueError(err),
   });
 };

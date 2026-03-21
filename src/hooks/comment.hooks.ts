@@ -5,6 +5,7 @@ import axios from '@/lib/axiosClient';
 import type { ApiError } from '@/models/api-error';
 import { CommentModel } from '@/models/comment.models';
 import { PaginatedResponse } from '@/models/paginated-response.model';
+import { useArtSnackbar } from '@/components/ui/ArtSnackbar';
 
 export const usePagedCommentsByVideoId = (videoId: string, page: number, pageSize: number) => {
   return useQuery<PaginatedResponse<CommentModel>, ApiError>({
@@ -30,6 +31,7 @@ export const useCommentById = (commentId: string) => {
 
 export const useCreateComment = (videoId: string) => {
   const queryClient = useQueryClient();
+  const { enqueueError, enqueueSuccess } = useArtSnackbar();
   return useMutation<CommentModel, ApiError, string>({
     mutationFn: async (text: string) => {
       const res = await axios.post<CommentModel>(API.comment.create(videoId), { text });
@@ -38,6 +40,8 @@ export const useCreateComment = (videoId: string) => {
     onSuccess: (created: CommentModel) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.invalidate.list() });
       queryClient.setQueryData<CommentModel>(queryKeys.comment.byId(created.id), created);
+      enqueueSuccess('Comment posted!');
     },
+    onError: (err) => enqueueError(err),
   });
 };

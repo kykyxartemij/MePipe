@@ -3,63 +3,80 @@
 import { useState } from 'react';
 import { usePagedCommentsByVideoId, useCreateComment } from '@/hooks/comment.hooks';
 import ArtInput from '@/components/ui/ArtInput';
+import ArtButton from '@/components/ui/ArtButton';
+import ArtSkeleton from '@/components/ui/ArtSkeleton';
 import type { CommentModel } from '@/models/comment.models';
 
 const PAGE_SIZE = 100;
 
-export default function CommentSection({ videoId }: { videoId: string }) {
-  const [localComments, setLocalComments] = useState<CommentModel[]>([]);
+/* ─── CommentInput ─────────────────────────────────────────────────────────
+   Isolated so useCreateComment / useMutation re-renders stay in this sub-tree.
+───────────────────────────────────────────────────────────────────────────── */
+function CommentInput({ videoId, disabled }: { videoId: string; disabled: boolean }) {
   const [commentText, setCommentText] = useState('');
-
-  const { data, isLoading } = usePagedCommentsByVideoId(videoId, 1, PAGE_SIZE);
   const createComment = useCreateComment(videoId);
-
-  const serverComments = data?.data ?? [];
-  const comments = [...localComments, ...serverComments];
 
   const handleComment = () => {
     const text = commentText.trim();
     if (!text) return;
     createComment.mutate(text, {
-      onSuccess: (newComment: CommentModel) => {
-        setLocalComments((prev) => [newComment, ...prev]);
-        setCommentText('');
-      },
+      onSuccess: () => setCommentText(''),
     });
   };
 
   return (
+    <div className="flex gap-2 mb-5">
+      <ArtInput
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        placeholder="Add a comment..."
+        onKeyDown={(e) => e.key === 'Enter' && handleComment()}
+        disabled={disabled}
+      />
+      <ArtButton onClick={handleComment} disabled={disabled || createComment.isPending}>
+        {createComment.isPending ? 'Sending...' : 'Send'}
+      </ArtButton>
+    </div>
+  );
+}
+
+/* ─── CommentSection ─── */
+export default function CommentSection({ videoId }: { videoId: string }) {
+  const { data, isLoading } = usePagedCommentsByVideoId(videoId, 1, PAGE_SIZE);
+
+  const totalComments = data?.total ?? 0;
+  const comments = data?.data ?? [];
+
+  return (
     <div className="mt-6">
-      <h3 className="mb-3 font-semibold">Comments</h3>
+      <h3 className="mb-3 font-semibold">
+        {isLoading ? 'Comments' : `${totalComments} Comment${totalComments === 1 ? '' : 's'}`}
+      </h3>
 
-      <div className="flex gap-2 mb-4">
-        <ArtInput
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          placeholder="Add a comment..."
-          onKeyDown={(e) => e.key === 'Enter' && handleComment()}
-        />
-        <button className="btn" onClick={handleComment} disabled={createComment.isPending}>
-          {createComment.isPending ? 'Sending...' : 'Send'}
-        </button>
-      </div>
+      <CommentInput videoId={videoId} disabled={isLoading} />
 
-      {isLoading && <p className="text-sm text-[var(--text-muted)]">Loading comments...</p>}
-
-      <div>
-        {comments.map((c) => (
-          <div key={c.id} className="border-b border-[var(--border)] py-2.5 text-sm">
-            <div className="text-xs text-[var(--text-muted)] mb-1">
-              {new Date(c.createdAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
+      {isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <ArtSkeleton key={i} className="h-14 w-full rounded-lg" />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {comments.map((c: CommentModel) => (
+            <div key={c.id} className="rounded-lg bg-muted px-3 py-2.5">
+              <div className="text-[11px] text-muted mb-1.5 tracking-wide">
+                {new Date(c.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </div>
+              <p className="text-sm leading-relaxed">{c.text}</p>
             </div>
-            {c.text}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from './Navbar';
 import QueryProvider from '@/providers/QueryProvider';
+import { ArtSnackbarProvider } from '@/components/ui/ArtSnackbar';
+import { ArtDialogProvider } from '@/components/ui/ArtDialog';
 
 export const metadata: Metadata = {
   title: 'MePipe',
@@ -13,8 +15,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <QueryProvider>
-          <Navbar />
-          <main className="w-full px-8 py-6">{children}</main>
+          <ArtSnackbarProvider>
+          <ArtDialogProvider>
+            <Navbar />
+            <main className="w-full max-w-screen-2xl mx-auto px-2 py-3">{children}</main>
+          </ArtDialogProvider>
+          </ArtSnackbarProvider>
         </QueryProvider>
       </body>
     </html>

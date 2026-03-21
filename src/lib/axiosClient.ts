@@ -1,7 +1,13 @@
 import axios from 'axios';
 import { ApiError } from '../models/api-error';
 
-const axiosClient = axios.create();
+const axiosClient = axios.create({
+  // baseURL: '/api', 
+  timeout: 10000, // 10 seconds timeout
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 // Response interceptor: normalize errors into custom ApiError
 axiosClient.interceptors.response.use(

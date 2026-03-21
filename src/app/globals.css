@@ -1,18 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0f0f0f;
-  --surface: #1a1a1a;
-  --border: #333;
-  --text: #f1f1f1;
+  color-scheme: dark;   /* native controls (scrollbars, resize handle, inputs) use dark palette */
+
+  /* Layout tokens */
+  --bg:         #0f0f0f;
+  --surface:    #1a1a1a;
+  --border:     #333;
+  --text:       #f1f1f1;
   --text-muted: #aaa;
-  --primary: #646cff;
+
+  /* Semantic palette */
+  --art-primary: #646cff;
+  --art-warning: oklch(75% 0.18 85);
+  --art-success: oklch(68% 0.19 145);
+  --art-danger:  oklch(62% 0.22 25);
+
+  /* Active accent — inherited by all Art components. Override via .art-{color} modifier. */
+  --art-accent: var(--art-primary);
+
+  /* Focus-ring color — neutral by default, overridden to accent inside colored field wrappers */
+  --art-field-focus: var(--text-muted);
+
+  /* Legacy alias so existing code using var(--primary) still works */
+  --primary: var(--art-primary);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Color modifier classes — apply to a container or directly on a component */
+.art-primary { --art-accent: var(--art-primary); }
+.art-warning  { --art-accent: var(--art-warning);  }
+.art-success  { --art-accent: var(--art-success);  }
+.art-danger   { --art-accent: var(--art-danger);   }
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 body {
@@ -27,42 +52,130 @@ a {
   text-decoration: none;
 }
 a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 @layer components {
   /* ===== Buttons ===== */
   .btn {
-    @apply rounded-lg border px-4 py-2 text-sm transition-colors cursor-pointer;
+    @apply inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors cursor-pointer;
+    --btn-hover-border: var(--text);
     border-color: var(--border);
     background: var(--surface);
     color: var(--text);
     font-family: inherit;
   }
-  .btn:hover { border-color: var(--primary); }
-  .btn:disabled { @apply opacity-50 cursor-not-allowed; }
+  .btn:hover { border-color: var(--btn-hover-border); }
+  .btn:active { background: color-mix(in srgb, white 6%, var(--surface)); }
+  .btn:disabled { @apply cursor-not-allowed; filter: grayscale(1); opacity: 0.35; }
+  .btn.art-primary, .btn.art-warning, .btn.art-success, .btn.art-danger {
+    border-color: color-mix(in srgb, var(--art-accent) 45%, var(--border));
+    color: var(--art-accent);
+  }
+  .btn.art-primary:hover, .btn.art-warning:hover, .btn.art-success:hover, .btn.art-danger:hover {
+    border-color: var(--art-accent);
+    background: color-mix(in srgb, var(--art-accent) 8%, var(--surface));
+  }
 
+  /* default variant: neutral gray fill without color, vivid accent fill with color */
   .btn-primary {
-    @apply rounded-lg border px-4 py-2 text-sm transition-colors cursor-pointer;
-    background: var(--primary);
-    border-color: var(--primary);
-    color: #fff;
+    @apply inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors cursor-pointer;
+    background: color-mix(in srgb, white 14%, var(--surface));
+    border-color: color-mix(in srgb, white 14%, var(--surface));
+    color: var(--text);
     font-family: inherit;
   }
-  .btn-primary:hover { opacity: 0.9; }
-  .btn-primary:disabled { @apply opacity-50 cursor-not-allowed; }
+  .btn-primary:hover { background: color-mix(in srgb, white 20%, var(--surface)); border-color: color-mix(in srgb, white 20%, var(--surface)); }
+  .btn-primary:active { background: color-mix(in srgb, white 10%, var(--surface)); border-color: color-mix(in srgb, white 10%, var(--surface)); }
+  .btn-primary:disabled { @apply cursor-not-allowed; filter: grayscale(1); opacity: 0.35; }
+  .btn-primary.art-primary, .btn-primary.art-warning, .btn-primary.art-success, .btn-primary.art-danger {
+    background: color-mix(in srgb, var(--art-accent) 82%, #000);
+    border-color: color-mix(in srgb, var(--art-accent) 82%, #000);
+    color: #fff;
+  }
+  .btn-primary.art-primary:hover, .btn-primary.art-warning:hover,
+  .btn-primary.art-success:hover, .btn-primary.art-danger:hover {
+    background: color-mix(in srgb, var(--art-accent) 72%, #000);
+    border-color: color-mix(in srgb, var(--art-accent) 72%, #000);
+    opacity: 1;
+  }
+  .btn-primary.art-primary:active, .btn-primary.art-warning:active,
+  .btn-primary.art-success:active, .btn-primary.art-danger:active {
+    background: color-mix(in srgb, var(--art-accent) 62%, #000);
+    border-color: color-mix(in srgb, var(--art-accent) 62%, #000);
+    opacity: 1;
+  }
+
+  .btn-ghost.art-primary, .btn-ghost.art-warning, .btn-ghost.art-success, .btn-ghost.art-danger { color: var(--art-accent); }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 bg-transparent border border-transparent px-4 py-2 text-sm rounded-lg cursor-pointer transition-colors;
+    color: inherit;
+    font-family: inherit;
+  }
+  .btn-ghost:hover { @apply bg-white/12; }
+  .btn-ghost:active { @apply bg-white/18; }
+  .btn-ghost:disabled { @apply cursor-not-allowed; opacity: 0.25; }
+
+  /* Button size modifiers — applied alongside .btn / .btn-primary / .btn-ghost */
+  /* art-btn--md is the default and has no overrides */
+  .art-btn--sm { @apply px-3 py-1 text-xs; }
+  .art-btn--lg { @apply px-5 py-2.5 text-base; }
+
+  /* ===== ArtSlider ===== */
+  /* Custom slider — replaces input[type=range] to avoid ::-webkit-slider-thumb vendor CSS */
+  /* Color driven by --art-accent (set via .art-{color} modifier on self or parent) */
+  .art-slider {
+    @apply relative h-1 rounded-full cursor-pointer select-none;
+    background: color-mix(in srgb, var(--art-accent) 30%, transparent);
+  }
+  .art-slider-fill {
+    @apply absolute inset-y-0 left-0 rounded-full pointer-events-none;
+    background: var(--art-accent);
+  }
+  .art-slider-thumb {
+    @apply absolute top-1/2 w-3 h-3 rounded-full pointer-events-none opacity-0 transition-opacity;
+    background: var(--art-accent);
+    transform: translate(-50%, -50%);
+  }
+  .art-slider:hover .art-slider-thumb { @apply opacity-100; }
+  .art-slider--sm  { height: 3px; }
+  .art-slider--sm .art-slider-thumb { @apply w-2.5 h-2.5; }
+
+  /* ===== ArtProgress ===== */
+  /* Display-only counterpart to ArtSlider — no thumb, no interaction, role=progressbar */
+  .art-progress {
+    @apply relative h-1 rounded-full cursor-default select-none;
+    background: color-mix(in srgb, var(--art-accent) 30%, transparent);
+  }
+  .art-progress-fill {
+    @apply absolute inset-y-0 left-0 rounded-full pointer-events-none;
+    background: var(--art-accent);
+  }
+  .art-progress--sm { height: 3px; }
 
   /* ===== Art Field -- shared base for ArtInput & ArtTextarea ===== */
   .art-field-wrapper { @apply flex flex-col w-full; }
   .art-field-inner  { @apply relative flex w-full; }
 
   .art-field {
-    @apply w-full min-w-[10rem] min-h-[2.25rem] text-sm rounded-md px-3 py-2;
+    @apply w-full min-w-40 min-h-9 text-sm rounded-md px-3 py-2;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
     font-family: inherit;
   }
+
+  /* Field size modifiers — art-field--md is the default, no overrides needed */
+  .art-field--sm { @apply min-h-7 text-xs px-2 py-1; }
+  .art-field--lg { @apply min-h-11 text-base px-4 py-3; }
+
+  .art-field:disabled {
+    cursor: not-allowed;
+    opacity: 0.38;
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+  }
+  .art-field-wrapper:has(.art-field:disabled) .art-field-icon { opacity: 0.38; }
 
   .art-field-icon {
     @apply absolute left-3 top-1/2 -translate-y-1/2;
@@ -74,19 +187,42 @@ a:hover {
   .art-field-inner:has(.art-field-icon) .art-field { padding-left: 2.25rem; }
   .art-field-inner:has(.art-field-clear) .art-field { padding-right: 2.25rem; }
 
-  .art-field-clear {
-    @apply absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center;
-    padding: 0;
-    background: transparent;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    color: var(--text-muted);
-  }
-  .art-field-clear:hover { color: var(--text); background: var(--border); }
-  .art-field-clear:focus-visible { outline: 1px solid var(--primary); }
+  /* Positions the clear button inside the field — visual styling is ArtIconButton's responsibility */
+  .art-field-clear { position: absolute; right: 0.25rem; top: 50%; transform: translateY(-50%); }
 
   .art-field-helper { @apply text-[0.78rem] mt-1 leading-[1.3]; color: #e06464; }
+
+  .art-textarea { resize: vertical; scrollbar-gutter: stable; }
+
+  /* Custom scrollbar — applied to all scrollable Art elements */
+  .art-scrollable { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .art-scrollable::-webkit-scrollbar       { width: 6px; }
+  .art-scrollable::-webkit-scrollbar-track { background: transparent; }
+  .art-scrollable::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+  .art-scrollable::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* Textarea corner: color-scheme: dark (on :root) makes the browser render the
+     native resize handle in dark-palette colors — no overrides needed. */
+  .art-textarea.art-scrollable::-webkit-scrollbar-corner { background: var(--surface); }
+
+  /* Colored field — tint text, background, and icon when an art-* color class is on the wrapper */
+  .art-field-wrapper.art-primary,
+  .art-field-wrapper.art-warning,
+  .art-field-wrapper.art-success,
+  .art-field-wrapper.art-danger  { --art-field-focus: var(--art-accent); }
+
+  .art-field-wrapper.art-primary .art-field,
+  .art-field-wrapper.art-warning .art-field,
+  .art-field-wrapper.art-success .art-field,
+  .art-field-wrapper.art-danger  .art-field {
+    color: var(--art-accent);
+    background: color-mix(in srgb, var(--art-accent) 8%, var(--surface));
+    border-color: color-mix(in srgb, var(--art-accent) 40%, var(--border));
+  }
+  .art-field-wrapper.art-primary .art-field-icon,
+  .art-field-wrapper.art-warning .art-field-icon,
+  .art-field-wrapper.art-success .art-field-icon,
+  .art-field-wrapper.art-danger  .art-field-icon { color: var(--art-accent); }
 
   /* ===== Navbar — grid centres search between logo and upload ===== */
   .navbar {
@@ -103,43 +239,286 @@ a:hover {
   .navbar-upload { @apply flex items-center transition-colors; color: var(--text-muted); justify-self: end; }
   .navbar-upload:hover { color: var(--text); }
 
-  /* ===== ArtComboBox ===== */
+  /* ===== ArtComboBox / ArtSelect ===== */
   .art-combobox { @apply relative w-full; }
   .art-combobox-list {
     @apply absolute top-full left-0 right-0 mt-1 p-1 list-none rounded-md shadow-lg z-50 max-h-80 overflow-y-auto;
     background: var(--surface);
     border: 1px solid var(--border);
   }
-  .art-combobox-option { @apply px-3 py-2 cursor-pointer text-sm transition-colors; }
+  .art-combobox-option { @apply px-3 py-2 rounded-md cursor-pointer text-sm transition-colors; }
   .art-combobox-option--active,
   .art-combobox-option:hover { background: var(--border); }
+  .art-combobox-option:active { background: color-mix(in srgb, white 10%, var(--surface)); }
   .art-combobox-option--muted { @apply cursor-default; color: var(--text-muted); }
 
-  /* ===== Video Page Layout ===== */
-  .video-page { @apply flex gap-6; }
-  .video-main { @apply flex-1 min-w-0; }
-  .video-sidebar { @apply w-[400px] min-w-[340px]; }
-  @media (max-width: 1024px) {
-    .video-page { @apply flex-col; }
-    .video-sidebar { @apply w-full min-w-0; }
+  /* Option inner row — icon + label */
+  .art-combobox-option-inner { @apply flex items-center gap-2; }
+
+  /* Colored option row — text is always tinted so you can scan colors at a glance.
+     Background tint only on hover/active to avoid the rainbow-wall effect. */
+  .art-combobox-option.art-primary,
+  .art-combobox-option.art-warning,
+  .art-combobox-option.art-success,
+  .art-combobox-option.art-danger { color: var(--art-accent); }
+
+  .art-combobox-option.art-primary:hover, .art-combobox-option.art-primary.art-combobox-option--active,
+  .art-combobox-option.art-warning:hover, .art-combobox-option.art-warning.art-combobox-option--active,
+  .art-combobox-option.art-success:hover, .art-combobox-option.art-success.art-combobox-option--active,
+  .art-combobox-option.art-danger:hover,  .art-combobox-option.art-danger.art-combobox-option--active {
+    background: color-mix(in srgb, var(--art-accent) 18%, transparent);
   }
 
-  /* ===== Video Grid ===== */
-  .video-grid { @apply grid grid-cols-4 gap-6; }
-  @media (max-width: 1024px) { .video-grid { @apply grid-cols-3; } }
-  @media (max-width: 768px)  { .video-grid { @apply grid-cols-2; } }
-  @media (max-width: 480px)  { .video-grid { @apply grid-cols-1; } }
-
-  /* ===== Genre Badge ===== */
-  .genre-badge {
-    @apply text-xs px-2.5 py-0.5 rounded-full;
+  /* ===== ArtListbox ===== */
+  /* Inline variant — bordered scrollable list used in dialogs / panels */
+  .art-listbox--inline {
+    list-style: none; overflow-y: auto; border-radius: 6px; padding: 4px;
+    border: 1px solid var(--border);
     background: var(--surface);
+    max-height: 15rem;
+  }
+  /* Prominent divider between action rows and regular option rows */
+  .art-listbox-section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+    list-style: none;
+  }
+
+  /* Multi-select chips input */
+  .art-combobox-chips-field {
+    display: flex; align-items: center; gap: 4px; cursor: text;
+    /* override art-field's py-2 so badge sm (~26px) fits inside min-h-9 (36px) */
+    padding-top: 4px; padding-bottom: 4px;
+  }
+  .art-combobox-chips-field--collapsed { flex-wrap: nowrap; overflow: hidden; }
+  .art-combobox-chips-field--expanded  { flex-wrap: wrap; align-items: flex-start; }
+  .art-combobox-chips-field:focus-within { border-color: var(--art-field-focus); }
+
+  /* "+N more" expand button */
+  .art-combobox-chips-more {
+    flex-shrink: 0; white-space: nowrap; cursor: pointer;
+    background: none; border: none; padding: 2px 6px; border-radius: 4px;
+    font-size: 0.78rem; color: var(--text-muted);
+    transition: color 0.15s, background 0.15s;
+  }
+  .art-combobox-chips-more:hover { color: var(--text); background: var(--border); }
+  .art-combobox-chips-input {
+    flex: 1; min-width: 60px; background: transparent; border: none; outline: none;
+    font-size: inherit; color: var(--text); padding: 0;
+  }
+  .art-combobox-chips-input::placeholder { color: var(--text-muted); }
+  .art-combobox-chips-field.art-field--disabled { cursor: not-allowed; opacity: 0.38; }
+
+  /* Selected option indicator — neutral tint, no accent color */
+  .art-combobox-option--selected { background: var(--border); }
+  .art-combobox-option--selected:hover { background: color-mix(in srgb, white 6%, var(--border)); }
+  .art-combobox-option--selected:active { background: color-mix(in srgb, white 12%, var(--border)); }
+
+  /* ArtSelect trigger — same art-field base but rendered as <button> */
+  .art-select-trigger {
+    @apply flex items-center gap-2 cursor-pointer text-left w-full;
+    font-family: inherit;
+  }
+  .art-select-trigger:focus { outline: none; border-color: var(--art-field-focus); }
+  .art-select-trigger:disabled { @apply cursor-not-allowed; opacity: 0.38; }
+
+  /* Colored trigger — when selected option has a color, tint the whole trigger */
+  .art-select-trigger.art-primary,
+  .art-select-trigger.art-warning,
+  .art-select-trigger.art-success,
+  .art-select-trigger.art-danger {
+    color: var(--art-accent);
+    background: color-mix(in srgb, var(--art-accent) 8%, var(--surface));
+    border-color: color-mix(in srgb, var(--art-accent) 40%, var(--border));
+  }
+
+  /* ---- Tooltip — portal-rendered (position: fixed via inline style), visual only ---- */
+  .art-tooltip {
+    white-space: nowrap;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    background: var(--surface-2, #2a2a2a);
+    color: var(--text);
+    border: 1px solid var(--border);
+    pointer-events: none;
+    z-index: 10200;
+  }
+
+  /* ---- IconButton — size only, btn-ghost handles the rest ---- */
+  .art-icon-btn { width: 2rem; height: 2rem; padding: 0; justify-content: center; }
+  .art-icon-btn.art-btn--sm { width: 1.5rem; height: 1.5rem; }
+  .art-icon-btn.art-btn--lg { width: 2.75rem; height: 2.75rem; }
+
+  /* ---- Button spinner (used by ArtButton loading state) ---- */
+  .art-btn-spinner {
+    display: inline-block;
+    width: 16px;   /* md — matches ICON_SIZE.md */
+    height: 16px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: art-spin 0.55s linear infinite;
+    flex-shrink: 0;
+  }
+  .art-btn--sm .art-btn-spinner { width: 14px; height: 14px; }
+  .art-btn--lg .art-btn-spinner { width: 20px; height: 20px; }
+
+  /* ===== ArtLabel ===== */
+  .art-label {
+    @apply block text-sm font-normal mb-1 select-none;
     color: var(--text-muted);
   }
+  .art-label-required { @apply ml-0.5; }
+
+  /* ===== ArtBadge ===== */
+  .art-badge {
+    @apply inline-flex items-center gap-1 rounded-lg font-medium select-none border;
+    font-size: 0.875rem; line-height: 1.4; border-color: transparent;
+    --badge-px: 13px; --badge-py: 4px;
+    padding: var(--badge-py) var(--badge-px);
+  }
+  .art-badge--xs { font-size: 0.72rem; --badge-px: 6px;  --badge-py: 1px; }
+  .art-badge--sm { font-size: 0.84rem; --badge-px: 10px; --badge-py: 2px; }
+  .art-badge--lg { font-size: 0.94rem; --badge-px: 16px; --badge-py: 5px; }
+  .art-badge--xl { font-size: 1rem;    --badge-px: 18px; --badge-py: 6px; }
+  /* Leading icon / trailing dismiss: shrink that side to ~half so icon/button sit flush naturally */
+  .art-badge--with-icon  { padding-left:  calc(var(--badge-px) / 2); }
+  .art-badge--removable  { padding-right: calc(var(--badge-px) / 2); }
+  .art-badge--outlined { border-color: var(--border); background: var(--surface); color: var(--text); }
+  .art-badge--outlined.art-primary, .art-badge--outlined.art-warning,
+  .art-badge--outlined.art-success,  .art-badge--outlined.art-danger {
+    border-color: color-mix(in srgb, var(--art-accent) 45%, var(--border)); color: var(--art-accent);
+  }
+
+  .art-badge--default { background: color-mix(in srgb, white 14%, var(--surface)); color: var(--text); }
+  .art-badge--default.art-primary, .art-badge--default.art-warning,
+  .art-badge--default.art-success,  .art-badge--default.art-danger {
+    background: color-mix(in srgb, var(--art-accent) 82%, #000); color: #fff;
+  }
+
+  .art-badge--ghost { color: var(--text-muted); }
+  .art-badge--ghost.art-primary, .art-badge--ghost.art-warning,
+  .art-badge--ghost.art-success,  .art-badge--ghost.art-danger { color: var(--art-accent); }
+
+  /* Chip mode — dismiss button inside ArtBadge */
+  .art-badge-remove { opacity: 0.55; }
+  .art-badge-remove:hover { opacity: 1; }
+  /* Constrain button size so it doesn't inflate badge height; remove circular hover bg inside badge */
+  .art-badge .art-icon-btn { width: 1.125rem; height: 1.125rem; }
+  .art-badge .art-icon-btn:hover { background: transparent; }
+  .art-badge .art-icon-btn:active { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+  /* Reduce right padding when badge has a remove button */
+  .art-badge--removable { padding-right: 4px; }
+
+  /* ===== ArtUpload ===== */
+  .art-upload {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; min-height: 88px; padding: 16px; text-align: center; cursor: pointer;
+    border: 1.5px dashed var(--border); border-radius: 8px;
+    background: var(--surface); transition: border-color 0.15s, background 0.15s;
+  }
+  .art-upload:hover,
+  .art-upload--dragging { border-color: var(--art-accent); background: color-mix(in srgb, var(--art-accent) 5%, var(--surface)); }
+  .art-upload--selected { border-style: solid; border-color: color-mix(in srgb, var(--art-accent) 50%, var(--border)); }
+  .art-upload--disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+  .art-upload-icon   { color: var(--text-muted); }
+  .art-upload-label  { font-size: 0.875rem; color: var(--text-muted); }
+  .art-upload-hint   { font-size: 0.75rem; color: var(--text-muted); opacity: 0.7; }
+  .art-upload-filename { font-size: 0.875rem; font-weight: 500; word-break: break-all; max-width: 100%; }
+  .art-upload-size   { font-size: 0.75rem; color: var(--text-muted); }
+  .art-upload-clear  { position: absolute; top: 6px; right: 6px; }
+
+  /* ===== ArtDialog ===== */
+  .art-dialog-backdrop {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,0,0,0.55);
+    @apply flex items-center justify-center p-4;
+  }
+  .art-dialog {
+    @apply w-full flex flex-col;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; max-height: 85vh; overflow: hidden;
+  }
+  .art-dialog-header {
+    @apply flex items-start gap-3;
+    padding: 1.25rem 1.25rem 1rem;
+  }
+  .art-dialog-icon { color: var(--art-accent); flex-shrink: 0; margin-top: 0.5rem; }
+  .art-dialog-title  { font-size: 1rem; font-weight: 600; line-height: 1.4; }
+  .art-dialog-description { @apply text-sm mt-1; color: var(--text-muted); }
+  .art-dialog-content { @apply text-sm overflow-y-auto; padding: 0 1.25rem 1rem; color: var(--text-muted); }
+  .art-dialog-footer { @apply flex flex-wrap justify-end gap-2; padding: 0 1.25rem 1.25rem; }
+
+  /* Outlined variant — accent-tinted border + background */
+  .art-dialog--outlined.art-primary, .art-dialog--outlined.art-warning,
+  .art-dialog--outlined.art-success, .art-dialog--outlined.art-danger {
+    border-color: color-mix(in srgb, var(--art-accent) 55%, var(--border));
+    background: color-mix(in srgb, var(--art-accent) 7%, var(--surface));
+  }
+  .art-dialog--outlined.art-primary .art-dialog-title,
+  .art-dialog--outlined.art-warning .art-dialog-title,
+  .art-dialog--outlined.art-success .art-dialog-title,
+  .art-dialog--outlined.art-danger  .art-dialog-title { color: var(--art-accent); }
+
+  /* ===== ArtSnackbar ===== */
+  @keyframes snack-progress { from { width: 100%; } to { width: 0%; } }
+  @keyframes snack-in      { from { transform: translateX(110%);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes snack-in-left { from { transform: translateX(-110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  .art-snackbar-stack { @apply fixed flex gap-2 pointer-events-none max-w-[400px]; width: calc(100vw - 2.5rem); z-index: 10100; }
+  .art-snackbar {
+    @apply pointer-events-auto relative flex items-start gap-2.5 p-3 rounded-lg border;
+    border-color: var(--border); background: var(--surface);
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    animation: snack-in 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  .art-snackbar--from-left { animation-name: snack-in-left; }
+  .art-snackbar--out      { transform: translateX(110%);  opacity: 0; animation: none; }
+  .art-snackbar--out-left { transform: translateX(-110%); opacity: 0; animation: none; }
+  .art-snackbar--centered { @apply items-center; }
+  .art-snackbar--centered .art-snackbar-icon,
+  .art-snackbar--centered .art-snackbar-count { margin-top: 0; }
+  .art-snackbar--stacked {
+    box-shadow: 0 4px 20px rgba(0,0,0,.5),
+      5px 6px 0 0   color-mix(in srgb, var(--art-accent) 10%, var(--surface)),
+      5px 6px 0 1px color-mix(in srgb, var(--art-accent) 40%, var(--border));
+  }
+  .art-snackbar--stacked-deep {
+    box-shadow: 0 4px 20px rgba(0,0,0,.5),
+      5px  6px  0 0   color-mix(in srgb, var(--art-accent) 10%, var(--surface)),
+      5px  6px  0 1px color-mix(in srgb, var(--art-accent) 40%, var(--border)),
+      10px 12px 0 0   color-mix(in srgb, var(--art-accent)  7%, var(--surface)),
+      10px 12px 0 1px color-mix(in srgb, var(--art-accent) 28%, var(--border));
+  }
+  .art-snackbar-icon  { @apply flex-shrink-0; color: var(--art-accent); }
+  .art-snackbar-body  { @apply flex flex-col flex-1 min-w-0; gap: 3px; }
+  .art-snackbar-title { @apply text-sm font-medium leading-snug; }
+  .art-snackbar-desc  { @apply text-xs break-words leading-normal; color: var(--text-muted); }
+  .art-snackbar-count {
+    @apply flex-shrink-0 self-start mt-0.5 text-[0.7rem] font-semibold rounded border;
+    padding: 1px 5px;
+    background: color-mix(in srgb, var(--art-accent) 18%, var(--surface));
+    color: var(--art-accent); border-color: color-mix(in srgb, var(--art-accent) 32%, var(--border));
+  }
+  .art-snackbar-progress { @apply absolute bottom-0 left-[3px] right-[3px] h-[2px] overflow-hidden; border-radius: 0 0 6px 6px; }
+  .art-snackbar-progress .art-progress-fill { animation: snack-progress var(--snack-duration, 4000ms) linear forwards; }
+  .art-snackbar:hover .art-snackbar-progress .art-progress-fill { animation-play-state: paused; }
+  .art-snackbar.art-primary, .art-snackbar.art-success,
+  .art-snackbar.art-warning,  .art-snackbar.art-danger {
+    border-color: color-mix(in srgb, var(--art-accent) 45%, var(--border));
+    background:   color-mix(in srgb, var(--art-accent) 10%, var(--surface));
+  }
+
 }
 
-/* focus ring for all Art fields */
-input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+/* focus ring for all Art fields — neutral by default, accented inside a colored field wrapper */
+input:focus, textarea:focus { outline: none; border-color: var(--art-field-focus); }
 
 /* Shimmer skeleton used by loading placeholders */
 @layer utilities {
@@ -149,6 +528,11 @@ input:focus, textarea:focus { outline: none; border-color: var(--primary); }
     animation: shimmer 1.4s ease-in-out infinite;
     border-radius: 6px;
   }
+
+  .text-muted { color: var(--text-muted); }
+  .border-muted { border-color: var(--border); }
+  .bg-muted { background: var(--surface); }
 }
 
 @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+@keyframes art-spin { to { transform: rotate(360deg); } }

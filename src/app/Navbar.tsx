@@ -15,8 +15,8 @@ function NavbarInner() {
       {/* Left — logo */}
       <Link
         href="/"
+        prefetch
         className="navbar-logo"
-        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
       >
         <ArtIcon.ArtIcon name="MePipeLogo" size={28} />
         MePipe
@@ -28,7 +28,7 @@ function NavbarInner() {
       </div>
 
       {/* Right — upload */}
-      <Link href="/upload" className="navbar-upload" title="Upload">
+      <Link href="/upload" prefetch className="navbar-upload" title="Upload">
         <ArtIcon.ArtIcon name="Upload" size={22} />
       </Link>
     </nav>

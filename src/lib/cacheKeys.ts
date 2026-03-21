@@ -34,6 +34,6 @@ export const CACHE_KEYS = {
       String(pageSize),
     ],
     byId: (id: string) => ['comment', 'byId', id],
-    count: (videoId: string) => ['comment:count', videoId],
+    count: (videoId: string) => ['comment', 'count', videoId],
   },
 };

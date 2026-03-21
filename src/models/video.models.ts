@@ -73,7 +73,7 @@ export const VideoCreateValidator = yup.object({
     .mixed<AgeRating>()
     .oneOf(Object.values(AgeRating), 'Invalid age rating')
     .default(AgeRating.G_0),
-  genreIds: yup.array().of(yup.string().uuid('Genre ID must be a valid UUID')).default([]),
+  genreIds: yup.array().of(yup.string().uuid('Genre ID must be a valid UUID')).max(5, 'Maximum 5 genres per video').default([]),
 });
 
 export type VideoCreateRequest = yup.InferType<typeof VideoCreateValidator>;

@@ -1,26 +1,24 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchField } from '@/hooks/video.hooks';
-import ArtComboBox, { ArtComboBoxOption } from '@/components/ui/ArtComboBox';
+import ArtComboBox, { type ArtComboBoxOption } from '@/components/ui/ArtComboBox';
 
 export default function SearchField({ initialQuery = '' }: { initialQuery?: string }) {
   const router = useRouter();
-  const [query, setQuery] = useState(initialQuery);
+  const [selected, setSelected] = useState<ArtComboBoxOption | null>(
+    initialQuery ? { label: initialQuery, value: initialQuery } : null
+  );
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
 
   const { data: suggestions = [], isLoading } = useSearchField(debouncedQuery);
-
   const options: ArtComboBoxOption[] = (suggestions ?? []).map((s: string) => ({ label: s, value: s }));
 
-  const navigate = useCallback(
-    (q: string) => {
-      const trimmed = q.trim();
-      router.push(trimmed ? `/?freeText=${encodeURIComponent(trimmed)}` : '/');
-    },
-    [router]
-  );
+  const navigate = (q: string) => {
+    const trimmed = q.trim();
+    router.push(trimmed ? `/?freeText=${encodeURIComponent(trimmed)}` : '/');
+  };
 
   return (
     <ArtComboBox
@@ -28,8 +26,8 @@ export default function SearchField({ initialQuery = '' }: { initialQuery?: stri
       placeholder="Search"
       clearable
       options={options}
-      value={query}
-      onChange={setQuery}
+      selected={selected}
+      onChange={(opt) => { setSelected(opt); if (opt) navigate(opt.value); }}
       debounceMs={300}
       onDebouncedChange={setDebouncedQuery}
       onSubmit={navigate}

@@ -1,16 +1,22 @@
 'use client';
 
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useId, useRef, useState } from 'react';
 import { ArtIcon, ArtIconProps } from './ArtIcon';
+import ArtIconButton from './ArtIconButton';
+import ArtLabel from './ArtLabel';
+import { useArtDebounced } from './art.hooks';
+import { type ArtColor, ART_COLOR_CLASS } from './art.types';
+import { cn } from './art.utils';
 
-interface ArtInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface ArtInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   icon?: ArtIconProps;
   clearable?: boolean;
   helperText?: string;
-  /** false = no debounce (default), number = debounce in ms */
-  debounce?: false | number;
-  /** Fires after `debounce` ms of inactivity. Only used when debounce > 0 */
+  debounce?: boolean | number;
   onDebouncedChange?: (value: string) => void;
+  color?: ArtColor;
+  onClear?: () => void;
+  label?: string;
 }
 
 const ArtInput = forwardRef<HTMLInputElement, ArtInputProps>((props, ref) => {
@@ -22,8 +28,16 @@ const ArtInput = forwardRef<HTMLInputElement, ArtInputProps>((props, ref) => {
     debounce: debounceMs = false,
     onDebouncedChange,
     onChange,
+    color,
+    onClear,
+    label,
+    id: idProp,
+    required,
     ...rest
   } = props;
+
+  const generatedId = useId();
+  const id = idProp ?? generatedId;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [hasValue, setHasValue] = useState(false);
@@ -36,32 +50,14 @@ const ArtInput = forwardRef<HTMLInputElement, ArtInputProps>((props, ref) => {
   };
 
   // ---- debounce ----
-  const debouncedRef = useRef(onDebouncedChange);
-  useEffect(() => {
-    debouncedRef.current = onDebouncedChange;
-  }, [onDebouncedChange]);
-
-  const debounced = useMemo(() => {
-    if (!debounceMs) return null;
-    let timer: ReturnType<typeof setTimeout>;
-    const fn = (value: string) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => debouncedRef.current?.(value), debounceMs);
-    };
-    fn.cancel = () => clearTimeout(timer);
-    return fn;
-  }, [debounceMs]);
-
-  useEffect(() => {
-    return () => debounced?.cancel();
-  }, [debounced]);
+  const debounced = useArtDebounced(onDebouncedChange, debounceMs);
 
   // ---- handlers ----
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setHasValue(e.target.value.length > 0);
       onChange?.(e);
-      debounced?.(e.target.value);
+      debounced(e.target.value);
     },
     [onChange, debounced],
   );
@@ -74,12 +70,16 @@ const ArtInput = forwardRef<HTMLInputElement, ArtInputProps>((props, ref) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
     setHasValue(false);
+    onClear?.();
   };
 
-  const showClear = clearable && hasValue;
+  // For controlled inputs, derive from the value prop directly; for uncontrolled, use tracked state
+  const controlledValue = rest.value as string | undefined;
+  const showClear = clearable && (controlledValue !== undefined ? controlledValue.length > 0 : hasValue);
 
   return (
-    <div className="art-field-wrapper">
+    <div className={cn('art-field-wrapper', color && ART_COLOR_CLASS[color])}>
+      {label && <ArtLabel htmlFor={id} required={required}>{label}</ArtLabel>}
       <div className="art-field-inner">
         {icon && (
           <span className="art-field-icon" aria-hidden>
@@ -89,13 +89,19 @@ const ArtInput = forwardRef<HTMLInputElement, ArtInputProps>((props, ref) => {
         <input
           {...rest}
           ref={setRef}
-          className={`art-field ${className || ''}`}
+          id={id}
+          required={required}
+          className={cn('art-field', className)}
           onChange={handleChange}
         />
         {showClear && (
-          <button type="button" className="art-field-clear" onClick={handleClear} aria-label="Clear" tabIndex={-1}>
-            <ArtIcon name="Close" size={14} />
-          </button>
+          <ArtIconButton
+            icon={{ name: 'Close', size: 14 }}
+            aria-label="Clear"
+            className="art-field-clear"
+            onClick={handleClear}
+            tabIndex={-1}
+          />
         )}
       </div>
       {helperText && <p className="art-field-helper">{helperText}</p>}

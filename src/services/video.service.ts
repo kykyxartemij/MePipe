@@ -37,7 +37,7 @@ export async function getPagedVideos(request: NextRequest) {
       () =>
         prisma.video.findMany({
           where,
-          skip: (page - 1) * pageSize,
+          skip: page * pageSize,
           take: pageSize,
           orderBy: { publishedAt: 'desc' },
           select: {
@@ -101,7 +101,7 @@ export async function getSimilarVideos(request: NextRequest, params: Promise<{ i
               },
             },
           },
-          skip: (page - 1) * pageSize,
+          skip: page * pageSize,
           take: pageSize,
           orderBy: { publishedAt: 'desc' },
           select: {

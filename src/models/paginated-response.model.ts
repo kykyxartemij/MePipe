@@ -12,14 +12,14 @@ export const PaginatedResponseValidator = yup.object({
   page: yup
     .number()
     .integer('Page must be an integer')
-    .min(1, 'Page must be at least 1')
-    .default(1),
+    .min(0, 'Page must be at least 0')
+    .default(0),
   pageSize: yup
     .number()
     .integer('Page size must be an integer')
     .min(1, 'Page size must be at least 1')
     .max(100, 'Page size cannot exceed 100')
-    .default(10),
+    .default(100),
 });
 
 export type PaginationResponseParams = yup.InferType<typeof PaginatedResponseValidator>;
@@ -34,17 +34,8 @@ export function createPaginatedResponse<T>(
   return { data, page, pageSize, total: total ?? 0 };
 }
 
-// TODO: Define usefullity of this function. Find out is it better to rely on total or just check if page was full.
 export function getNextPage(lastPage: PaginatedResponse<unknown>): number | undefined {
-  // Primary source: if current page is not full, there is no next page.
   if (lastPage.data.length < lastPage.pageSize) return undefined;
-
-  // If backend provides a positive total, use it to verify whether there is a next page.
-  if (lastPage.total > 0) {
-    return lastPage.page * lastPage.pageSize < lastPage.total ? lastPage.page + 1 : undefined;
-  }
-
-  // No total available but page was full — assume there is a next page.
   return lastPage.page + 1;
 }
 
@@ -58,7 +49,7 @@ export async function parsePaginationFromUrl(
   };
 
   const paginationData = {
-    page: rawParams.page ? Number(rawParams.page) : 1,
+    page: rawParams.page ? Math.max(0, Number(rawParams.page) - 1) : 0,
     pageSize: rawParams.pageSize ? Number(rawParams.pageSize) : 100,
   };
 
