@@ -5,7 +5,7 @@ import ArtButton, { type ArtButtonProps } from './ArtButton';
 import ArtIcon, { type ArtIconProps } from './ArtIcon';
 import ArtTooltip from './ArtTooltip';
 import { type ButtonHTMLAttributes } from 'react';
-import { type ArtColor } from './art.types';
+import { type ArtColor, ART_COLOR_CLASS } from './art.types';
 import { cn } from './art.utils';
 
 interface ArtIconToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
@@ -18,6 +18,7 @@ interface ArtIconToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   onPressedChange?: (pressed: boolean) => void;
   size?: ArtButtonProps['size'];
   color?: ArtColor;
+  variant?: ArtButtonProps['variant'];
 }
 
 const ICON_SIZE: Record<NonNullable<ArtIconToggleProps['size']>, number> = {
@@ -25,7 +26,7 @@ const ICON_SIZE: Record<NonNullable<ArtIconToggleProps['size']>, number> = {
 };
 
 const ArtIconToggle = forwardRef<HTMLButtonElement, ArtIconToggleProps>(
-  ({ icon, pressedIcon, tooltip, pressed: pressedProp, defaultPressed = false, onPressedChange, size = 'md', color, className = '', onClick, ...rest }, ref) => {
+  ({ icon, pressedIcon, tooltip, pressed: pressedProp, defaultPressed = false, onPressedChange, size = 'md', color, variant = 'ghost', className = '', onClick, ...rest }, ref) => {
     const [internalPressed, setInternalPressed] = useState(defaultPressed);
     const isControlled = pressedProp !== undefined;
     const isPressed = isControlled ? pressedProp : internalPressed;
@@ -40,12 +41,11 @@ const ArtIconToggle = forwardRef<HTMLButtonElement, ArtIconToggleProps>(
     const button = (
       <ArtButton
         ref={ref}
-        variant={isPressed ? 'default' : 'ghost'}
+        variant={variant}
         size={size}
-        color={color ?? 'primary'}
         aria-label={tooltip}
         aria-pressed={isPressed}
-        className={cn('art-icon-btn', className)}
+        className={cn('art-icon-btn', isPressed && 'art-icon-toggle--on', isPressed && color && ART_COLOR_CLASS[color], className)}
         onClick={handleClick}
         {...rest}
       >

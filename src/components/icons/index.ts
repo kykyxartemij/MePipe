@@ -1,7 +1,9 @@
 export { default as ChevronDown } from './ChevronDown';
 export { default as Search } from './Search';
 export { default as Like } from './Like';
+export { default as LikeFilled } from './LikeFilled';
 export { default as Dislike } from './Dislike';
+export { default as DislikeFilled } from './DislikeFilled';
 export { default as Close } from './Close';
 export { default as Upload } from './Upload';
 export { default as MePipeLogo } from './MePipeLogo';
@@ -13,3 +15,5 @@ export { default as Theater } from './Theater';
 export { default as Volume } from './Volume';
 export { default as VolumeMuted } from './VolumeMuted';
 export { default as Check } from './Check';
+export { default as Copy } from './Copy';
+export { default as Loading } from './Loading';

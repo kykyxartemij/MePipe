@@ -12,6 +12,7 @@ interface ArtSliderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'
   /** 'md' = default track height, 'sm' = thinner. Default: 'md' */
   size?: 'sm' | 'md';
   color?: ArtColor;
+  readOnly?: boolean;
 }
 
 const ArtSlider = ({
@@ -21,6 +22,7 @@ const ArtSlider = ({
   onChange,
   size = 'md',
   color,
+  readOnly = false,
   className,
   ...rest
 }: ArtSliderProps) => {
@@ -59,6 +61,7 @@ const ArtSlider = ({
   }, [resolve]);
 
   const onMouseDown = (e: React.MouseEvent) => {
+    if (readOnly) return;
     e.preventDefault();
     isDragging.current = true;
     onChangeRef.current(resolve(e.clientX));

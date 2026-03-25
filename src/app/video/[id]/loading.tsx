@@ -4,7 +4,7 @@ import { VideoCardSkeleton } from '@/page/video/VideoCard';
 
 export default function Loading() {
   return (
-    <div className="flex gap-6 max-lg:flex-col">
+    <div className="max-w-450 mx-auto flex gap-6 max-lg:flex-col">
       <div className="flex-1 min-w-0">
         <VideoPage loading />
         <div className="mt-6 space-y-2">

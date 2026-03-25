@@ -8,7 +8,7 @@ import type { VideoLightModel } from '@/models/video.models';
 export function VideoCardSkeleton({ horizontal = false }: { horizontal?: boolean }) {
   if (horizontal) {
     return (
-      <div className="flex gap-2 p-1 w-full">
+      <div className="flex gap-3 w-full">
         <ArtSkeleton className="w-42 min-w-42 aspect-video rounded-lg shrink-0" />
         <div className="flex-1 min-w-0 pt-1">
           <ArtSkeleton className="h-3.5 w-11/12 mb-2" />
@@ -20,7 +20,7 @@ export function VideoCardSkeleton({ horizontal = false }: { horizontal?: boolean
 
   return (
     <div className="w-full">
-      <ArtSkeleton className="w-full aspect-video" />
+      <ArtSkeleton className="w-full aspect-video rounded-lg" />
       <div className="p-2 pt-1">
         <ArtSkeleton className="h-3.5 w-3/4 mb-2" />
         <ArtSkeleton className="h-2.5 w-full mb-1.5" />
@@ -50,13 +50,13 @@ export default function VideoCard({
       <Link
         href={`/video/${video.id}`}
         prefetch
-        className="flex gap-2 p-1 w-full rounded-lg transition-colors hover:no-underline hover:shadow-[0_0_0_8px_var(--surface)] hover:bg-muted"
+        className="flex gap-3 w-full rounded-lg transition-colors hover:no-underline hover:shadow-[0_0_0_8px_var(--border)] hover:bg-(--border)"
       >
         <div className="w-42 min-w-42 shrink-0">
           <Image
             src={video.thumbnailUrl}
             alt={video.title}
-            className="w-full rounded-lg aspect-video"
+            className="w-full rounded-lg aspect-video object-cover"
             width={1280}
             height={720}
           />
@@ -73,15 +73,14 @@ export default function VideoCard({
     <Link
       href={`/video/${video.id}`}
       prefetch
-      className="block w-full rounded-lg transition-all hover:no-underline hover:shadow-[0_0_0_8px_var(--surface)] hover:bg-muted"
+      className="block w-full rounded-lg transition-colors hover:no-underline hover:shadow-[0_0_0_8px_var(--border)] hover:bg-(--border)"
     >
       <Image
         src={video.thumbnailUrl}
         alt={video.title}
-        className="w-full rounded-lg aspect-video"
+        className="w-full rounded-lg aspect-video object-cover"
         width={1280}
         height={720}
-
       />
       <div className="p-2 pt-1">
         <h3 className="text-sm font-semibold mb-0.5">{video.title}</h3>

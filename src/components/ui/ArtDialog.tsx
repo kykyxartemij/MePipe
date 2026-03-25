@@ -1,13 +1,14 @@
 'use client';
 
-import {
-  createContext, useCallback, useContext, useState,
+import React, {
+  createContext, useCallback, useContext, useMemo, useState,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import ArtButton, { type ArtButtonProps } from './ArtButton';
-import ArtIcon, { type ArtIconName } from './ArtIcon';
+import { type ArtIconName } from './ArtIcon';
 import ArtIconButton from './ArtIconButton';
+import ArtTitle from './ArtTitle';
 import { type ArtColor, ART_COLOR_CLASS } from './art.types';
 import { cn } from './art.utils';
 
@@ -63,8 +64,12 @@ export function ArtDialogProvider({ children }: { children: ReactNode }) {
   const show  = useCallback((cfg: ArtDialogConfig) => setConfig(cfg), []);
   const close = useCallback(() => setConfig((prev) => { prev?.onClose?.(); return null; }), []);
 
+  // Stable object — prevents all useContext(ArtDialogContext) consumers from
+  // re-rendering when config state changes (show/close are already stable callbacks).
+  const value = useMemo(() => ({ show, close }), [show, close]);
+
   return (
-    <ArtDialogContext.Provider value={{ show, close }}>
+    <ArtDialogContext.Provider value={value}>
       {children}
       {config !== null && createPortal(<DialogUI config={config} onClose={close} />, document.body)}
     </ArtDialogContext.Provider>
@@ -84,8 +89,6 @@ export function useArtDialog(): ArtDialogContextValue {
 //   • Provider mode (recommended) — provider manages state, no remount
 //   • Controlled mode — caller manages open/onOpenChange
 //   • Fallback mode — local useState when no provider and no controlled state
-// ───────────────────────────────────────────────────────────────────────────
-
 export interface ArtDialogProps extends ArtDialogConfig {
   /** Element that opens the dialog on click */
   children: ReactNode;
@@ -107,34 +110,38 @@ export function ArtDialog({
   const [localOpen, setLocalOpen] = useState(false);
 
   const isControlled = openProp !== undefined;
-  const useLocal     = !ctx && !isControlled;
-  const isOpen       = isControlled ? openProp : (useLocal ? localOpen : false);
+  // Provider is only used when the caller does not supply their own open state.
+  // Supplying `open` (controlled mode) bypasses the provider entirely so the
+  // caller's state machine owns open/close.
+  const useProvider = !!ctx && !isControlled;
+  const isOpen      = isControlled ? openProp : localOpen;
 
   const handleClose = useCallback(() => {
-    if (useLocal) setLocalOpen(false);
+    if (!isControlled) setLocalOpen(false);
     onOpenChange?.(false);
     onCloseProp?.();
-    ctx?.close();
-  }, [ctx, useLocal, onOpenChange, onCloseProp]);
+    if (useProvider) ctx!.close();
+  }, [isControlled, useProvider, ctx, onOpenChange, onCloseProp]);
 
   const handleOpen = () => {
-    if (ctx) {
-      ctx.show({ ...config, onClose: handleClose });
+    if (useProvider) {
+      ctx!.show({ ...config, onClose: handleClose });
       return;
     }
     if (!isControlled) setLocalOpen(true);
     onOpenChange?.(true);
   };
 
+  const trigger = React.isValidElement(children)
+    ? <div onClick={handleOpen} style={{ display: 'contents' }}>{children}</div>
+    : <button type="button" onClick={handleOpen}>{children}</button>;
+
   return (
     <>
-      {/* display:contents preserves the trigger's original layout */}
-      <span onClick={handleOpen} style={{ display: 'contents' }}>
-        {children}
-      </span>
+      {trigger}
 
-      {/* Standalone portal — only when no provider and not controlled */}
-      {useLocal && createPortal(
+      {/* Local portal — rendered when not delegating to the provider */}
+      {!useProvider && createPortal(
         <DialogUI
           config={isOpen ? { ...config, onClose: handleClose } : null}
           onClose={handleClose}
@@ -218,16 +225,8 @@ function DialogUI({
       >
         {/* Header */}
         <div className="art-dialog-header">
-          {icon && <ArtIcon name={icon} size={36} className="art-dialog-icon" />}
-          <div className="flex flex-col flex-1 min-w-0">
-            <p id="art-dialog-title" className="art-dialog-title">{title}</p>
-            {description && <p className="art-dialog-description">{description}</p>}
-          </div>
-          <ArtIconButton
-            icon={{ name: 'Close', size: 16 }}
-            tooltip="Close"
-            onClick={onClose}
-          />
+          <ArtTitle title={title} description={description} icon={icon} size="md" id="art-dialog-title" />
+          <ArtIconButton icon={{ name: 'Close', size: 16 }} tooltip="Close" onClick={onClose} />
         </div>
 
         {/* Content */}

@@ -9,7 +9,7 @@ import { cn } from './art.utils';
 interface ArtBadgeProps extends HTMLAttributes<HTMLSpanElement> {
   /** default = filled, outlined = border only, ghost = text only */
   variant?: 'default' | 'outlined' | 'ghost';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg';
   color?: ArtColor;
   icon?: ArtIconName;
   /** Chip mode — renders a × button that calls onRemove when clicked */
@@ -24,15 +24,13 @@ const VARIANT_CLASS: Record<NonNullable<ArtBadgeProps['variant']>, string> = {
 };
 
 const SIZE_CLASS: Record<NonNullable<ArtBadgeProps['size']>, string> = {
-  xs: 'art-badge--xs',
   sm: 'art-badge--sm',
   md: '',
   lg: 'art-badge--lg',
-  xl: 'art-badge--xl',
 };
 
 const ICON_SIZE: Record<NonNullable<ArtBadgeProps['size']>, number> = {
-  xs: 12, sm: 16, md: 18, lg: 20, xl: 22,
+  sm: 12, md: 18, lg: 22,
 };
 
 const ArtBadge = ({

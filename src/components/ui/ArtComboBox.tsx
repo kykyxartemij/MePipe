@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useLayoutEffect, forwardRef, useCallback, useId } from 'react';
+import { createPortal } from 'react-dom';
+import { useAnchoredPanel } from './art.hooks';
 import ArtInput from './ArtInput';
 import ArtBadge from './ArtBadge';
 import ArtLabel from './ArtLabel';
@@ -13,7 +15,7 @@ import { cn } from './art.utils';
 type ArtComboBoxOption = ArtOption;
 export type { ArtComboBoxOption };
 
-// ─── Shared base props ────────────────────────────────────────────────────────
+// ==== Shared base props ====
 
 interface ArtComboBoxBaseProps {
   options: ArtComboBoxOption[];
@@ -29,6 +31,7 @@ interface ArtComboBoxBaseProps {
   noOptionsMessage?: string;
   isLoading?: boolean;
   disabled?: boolean;
+  readOnly?: boolean;
   className?: string;
   /** true = text input + filter (default). false = styled button trigger, pick only. */
   searchable?: boolean;
@@ -38,7 +41,7 @@ interface ArtComboBoxBaseProps {
   onSubmit?: (inputText: string) => void;
 }
 
-// ─── Single-select props ──────────────────────────────────────────────────────
+// ==== Single-select props ====
 
 export interface ArtComboBoxSingleProps extends ArtComboBoxBaseProps {
   multiple?: false;
@@ -51,7 +54,7 @@ export interface ArtComboBoxSingleProps extends ArtComboBoxBaseProps {
   onChange?: (option: ArtComboBoxOption | null) => void;
 }
 
-// ─── Multi-select props ───────────────────────────────────────────────────────
+// ==== Multi-select props ====
 
 export interface ArtComboBoxMultiProps extends ArtComboBoxBaseProps {
   multiple: true;
@@ -62,7 +65,7 @@ export interface ArtComboBoxMultiProps extends ArtComboBoxBaseProps {
 
 export type ArtComboBoxProps = ArtComboBoxSingleProps | ArtComboBoxMultiProps;
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
+// ==== Internal helpers ====
 
 const FIELD_SIZE: Record<NonNullable<ArtComboBoxBaseProps['size']>, string> = {
   sm: 'art-field--sm',
@@ -70,7 +73,7 @@ const FIELD_SIZE: Record<NonNullable<ArtComboBoxBaseProps['size']>, string> = {
   lg: 'art-field--lg',
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ==== Component ====
 
 const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) => {
   const labelId = useId();
@@ -88,6 +91,7 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     noOptionsMessage,
     isLoading,
     disabled = false,
+    readOnly = false,
     className,
     searchable = true,
     selectFirstOnEnter = false,
@@ -97,7 +101,7 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
 
   const multiple = props.multiple ?? false;
 
-  // ─── Single-select state ──────────────────────────────────────────────────
+  // ==== Single-select state ====
 
   const singleProps = !multiple ? (props as ArtComboBoxSingleProps) : null;
   const isControlledSingle = singleProps?.selected !== undefined;
@@ -108,7 +112,7 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     ? (singleProps!.selected ?? null)
     : internalSingle;
 
-  // ─── Multi-select state ───────────────────────────────────────────────────
+  // ==== Multi-select state ====
 
   const multiProps = multiple ? (props as ArtComboBoxMultiProps) : null;
   const isControlledMulti = multiProps?.selected !== undefined;
@@ -119,17 +123,24 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     ? (multiProps!.selected ?? [])
     : internalMulti;
 
-  // ─── Chips collapsed/expanded state ──────────────────────────────────────
+  // ==== Chips collapsed/expanded state ====
 
   const CHIPS_MAX_COLLAPSED = 3;
   const [chipsUserExpanded, setChipsUserExpanded] = useState(false);
   // Derived: only expanded when user explicitly opened it AND there's still overflow
   const chipsExpanded = chipsUserExpanded && selectedMulti.length > CHIPS_MAX_COLLAPSED;
 
-  // ─── Shared state ─────────────────────────────────────────────────────────
+  // ==== Shared state ====
 
-  const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const {
+    triggerRef: wrapperRef,
+    panelRef: portalRef,
+    pos: dropdownPos,
+    open,
+    show,
+    hide,
+    toggle,
+  } = useAnchoredPanel<HTMLDivElement, HTMLDivElement>({ trackWidth: true });
   const listRef = useRef<HTMLUListElement>(null);
   const chipsInputRef = useRef<HTMLInputElement>(null);
   const activeIdxRef = useRef(-1);
@@ -174,17 +185,8 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     activeIdxRef.current = newIdx;
   }, []);
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
 
-  // ─── Selection handlers ───────────────────────────────────────────────────
+  // ==== Selection handlers ====
 
   const applySelection = useCallback((opt: ArtComboBoxOption | null) => {
     if (!isControlledSingle) setInternalSingle(opt);
@@ -206,16 +208,16 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     } else {
       setInputText(opt.label);
       applySelection(opt);
-      setOpen(false);
+      hide();
       onSubmit?.(opt.label);
     }
-  }, [multiple, applyMultiSelection, applySelection, onSubmit]);
+  }, [multiple, applyMultiSelection, applySelection, onSubmit, hide]);
 
   const removeMultiItem = useCallback((opt: ArtComboBoxOption) => {
     applyMultiSelection(selectedMultiRef.current.filter((o) => o.value !== opt.value));
   }, [applyMultiSelection]);
 
-  // ─── Keyboard handling ────────────────────────────────────────────────────
+  // ==== Keyboard handling ====
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     const opts = visibleOptionsRef.current;
@@ -230,9 +232,9 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     if (!openRef.current || opts.length === 0) {
       if (e.key === 'Enter') {
         e.preventDefault();
-        if (!searchable) { setOpen(true); return; }
+        if (!searchable) { show(); return; }
         if (selectFirstOnEnter && opts.length > 0) { select(opts[0]); return; }
-        if (!multiple) { setOpen(false); onSubmit?.(inputTextRef.current); }
+        if (!multiple) { hide(); onSubmit?.(inputTextRef.current); }
       }
       return;
     }
@@ -254,24 +256,24 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
         const idx = activeIdxRef.current;
         if (idx >= 0) select(opts[idx]);
         else if (selectFirstOnEnter && opts.length > 0) select(opts[0]);
-        else if (!multiple) { setOpen(false); onSubmit?.(inputTextRef.current); }
+        else if (!multiple) { hide(); onSubmit?.(inputTextRef.current); }
         break;
       }
       case 'Escape':
-        setOpen(false);
+        hide();
         break;
     }
-  }, [multiple, searchable, selectFirstOnEnter, select, onSubmit, moveActive, applyMultiSelection]);
+  }, [multiple, searchable, selectFirstOnEnter, select, onSubmit, moveActive, applyMultiSelection, show, hide]);
 
   const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === ' ' && !openRef.current) { e.preventDefault(); setOpen(true); return; }
+    if (e.key === ' ' && !openRef.current) { e.preventDefault(); show(); return; }
     handleKeyDown(e);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled) return;
     setInputText(e.target.value);
-    setOpen(true);
+    show();
   };
 
   const handleClear = () => applySelection(null);
@@ -283,7 +285,7 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
     </span>
   );
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ==== Render ====
 
   return (
     <div className={cn(label ? 'flex flex-col w-full' : 'art-combobox', className)}>
@@ -299,7 +301,7 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
             FIELD_SIZE[size],
             disabled && 'art-field--disabled',
           )}
-          onClick={() => { if (!disabled) { chipsInputRef.current?.focus(); setOpen(true); } }}
+          onClick={() => { if (!disabled && !readOnly) { chipsInputRef.current?.focus(); show(); } }}
         >
           {(chipsExpanded ? selectedMulti : selectedMulti.slice(0, CHIPS_MAX_COLLAPSED)).map((opt) => (
             <ArtBadge
@@ -308,7 +310,7 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
               variant="outlined"
               color={opt.color as ArtColor | undefined}
               icon={opt.icon as ArtIconName | undefined}
-              onRemove={() => removeMultiItem(opt)}
+              onRemove={readOnly ? undefined : () => removeMultiItem(opt)}
             >
               {opt.label}
             </ArtBadge>
@@ -331,8 +333,9 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
             id={labelId}
             className="art-combobox-chips-input"
             value={inputText}
+            readOnly={readOnly}
             onChange={handleChange}
-            onFocus={() => !disabled && setOpen(true)}
+            onFocus={() => !disabled && !readOnly && show()}
             onKeyDown={handleKeyDown}
             placeholder={selectedMulti.length === 0 ? placeholder : undefined}
             disabled={disabled}
@@ -354,7 +357,8 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
           onChange={handleChange}
           onClear={handleClear}
           onKeyDown={handleKeyDown}
-          onFocus={() => !disabled && setOpen(true)}
+          onFocus={() => !disabled && !readOnly && show()}
+          readOnly={readOnly}
           disabled={disabled}
         />
       ) : (
@@ -368,8 +372,8 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
             FIELD_SIZE[size],
             selectedSingle?.color && ART_COLOR_CLASS[selectedSingle.color],
           )}
-          onClick={() => !disabled && setOpen((o) => !o)}
-          onKeyDown={handleTriggerKeyDown}
+          onClick={() => !disabled && !readOnly && toggle()}
+          onKeyDown={readOnly ? undefined : handleTriggerKeyDown}
         >
           {selectedSingle
             ? renderOptionContent(selectedSingle)
@@ -378,17 +382,24 @@ const ArtComboBox = forwardRef<HTMLInputElement, ArtComboBoxProps>((props, ref) 
         </button>
       )}
 
-      {/* ── Dropdown list ─────────────────────────────────────────────────── */}
-      {open && (visibleOptions.length > 0 || (searchable && inputText.trim().length > 0)) && (
-        <ArtListbox
-          ref={listRef}
-          variant="dropdown"
-          options={visibleOptions}
-          selectedValues={multiple ? selectedMulti.map((o) => o.value) : undefined}
-          onSelect={select}
-          noOptionsMessage={isLoading ? 'Loading…' : noOptionsMessage}
-          isLoading={isLoading}
-        />
+      {/* ── Dropdown list — rendered into document.body so it escapes any
+           overflow:hidden / overflow:auto ancestor (table wrappers, collapse panels, etc.) */}
+      {open && (visibleOptions.length > 0 || (searchable && inputText.trim().length > 0)) && createPortal(
+        <div
+          ref={portalRef}
+          style={{ position: 'fixed', zIndex: 9999, ...dropdownPos }}
+        >
+          <ArtListbox
+            ref={listRef}
+            className="art-combobox-list"
+            options={visibleOptions}
+            selectedValues={multiple ? selectedMulti.map((o) => o.value) : undefined}
+            onSelect={select}
+            noOptionsMessage={isLoading ? 'Loading…' : noOptionsMessage}
+            isLoading={isLoading}
+          />
+        </div>,
+        document.body,
       )}
       </div>
     </div>

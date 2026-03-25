@@ -33,6 +33,7 @@ const ArtInput = forwardRef<HTMLInputElement, ArtInputProps>((props, ref) => {
     label,
     id: idProp,
     required,
+    readOnly,
     ...rest
   } = props;
 
@@ -75,7 +76,7 @@ const ArtInput = forwardRef<HTMLInputElement, ArtInputProps>((props, ref) => {
 
   // For controlled inputs, derive from the value prop directly; for uncontrolled, use tracked state
   const controlledValue = rest.value as string | undefined;
-  const showClear = clearable && (controlledValue !== undefined ? controlledValue.length > 0 : hasValue);
+  const showClear = clearable && !readOnly && (controlledValue !== undefined ? controlledValue.length > 0 : hasValue);
 
   return (
     <div className={cn('art-field-wrapper', color && ART_COLOR_CLASS[color])}>
@@ -91,6 +92,7 @@ const ArtInput = forwardRef<HTMLInputElement, ArtInputProps>((props, ref) => {
           ref={setRef}
           id={id}
           required={required}
+          readOnly={readOnly}
           className={cn('art-field', className)}
           onChange={handleChange}
         />

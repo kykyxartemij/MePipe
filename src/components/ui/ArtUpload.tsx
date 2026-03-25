@@ -11,6 +11,7 @@ interface ArtUploadProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
   /** Short hint below the icon, e.g. "MP4, WebM · max 500 MB" */
   hint?: string;
   helperText?: string;
+  readOnly?: boolean;
 }
 
 function formatSize(bytes: number): string {
@@ -28,6 +29,7 @@ const ArtUpload = forwardRef<HTMLInputElement, ArtUploadProps>((props, ref) => {
     required,
     className,
     disabled,
+    readOnly = false,
     ...rest
   } = props;
 
@@ -98,10 +100,11 @@ const ArtUpload = forwardRef<HTMLInputElement, ArtUploadProps>((props, ref) => {
           dragging && 'art-upload--dragging',
           file && 'art-upload--selected',
           disabled && 'art-upload--disabled',
+          readOnly && 'art-upload--readonly',
           className,
         )}
-        onClick={() => !disabled && inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); if (!disabled) setDragging(true); }}
+        onClick={() => !disabled && !readOnly && inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); if (!disabled && !readOnly) setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
       >
@@ -111,20 +114,24 @@ const ArtUpload = forwardRef<HTMLInputElement, ArtUploadProps>((props, ref) => {
             <ArtIcon name="Upload" size={22} className="art-upload-icon" />
             <span className="art-upload-filename">{file.name}</span>
             <span className="art-upload-size">{formatSize(file.size)}</span>
-            <ArtIconButton
-              icon={{ name: 'Close', size: 12 }}
-              size="sm"
-              className="art-upload-clear"
-              aria-label="Remove file"
-              onClick={handleClear}
-            />
+            {!readOnly && (
+              <ArtIconButton
+                icon={{ name: 'Close', size: 12 }}
+                size="sm"
+                className="art-upload-clear"
+                aria-label="Remove file"
+                onClick={handleClear}
+              />
+            )}
           </>
         ) : (
           /* Empty state */
           <>
             <ArtIcon name="Upload" size={24} className="art-upload-icon" />
-            <span className="art-upload-label">Drop file here or click to browse</span>
-            {hint && <span className="art-upload-hint">{hint}</span>}
+            <span className="art-upload-label">
+              {readOnly ? 'No file' : 'Drop file here or click to browse'}
+            </span>
+            {!readOnly && hint && <span className="art-upload-hint">{hint}</span>}
           </>
         )}
       </div>

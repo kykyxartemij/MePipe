@@ -1,18 +1,18 @@
-import VideoPage from '@/page/video/VideoPage';
-import CommentSection from '@/page/video/components/CommentSection';
-import SimilarVideos from '@/page/video/components/SimilarVideos';
+import type { Metadata } from 'next';
+import { prisma } from '@/lib/prisma';
+import VideoPageLayout from '@/page/video/VideoPageLayout';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const video = await prisma.video.findUniqueOrThrow({ where: { id }, select: { title: true } });
+    return { title: video.title };
+  } catch {
+    return { title: 'Video' };
+  }
+}
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return (
-    <div className="flex gap-6 max-lg:flex-col">
-      <div className="flex-1 min-w-0">
-        <VideoPage videoId={id} />
-        <CommentSection videoId={id} />
-      </div>
-      <aside className="w-100 min-w-85 max-lg:w-full max-lg:min-w-0">
-        <SimilarVideos videoId={id} />
-      </aside>
-    </div>
-  );
+  return <VideoPageLayout videoId={id} />;
 }

@@ -2,7 +2,7 @@ import * as yup from 'yup';
 
 export interface PaginatedResponse<T> {
   data: T[];
-  total: number;
+  total: number | undefined;
   page: number;
   pageSize: number;
 }
@@ -31,7 +31,7 @@ export function createPaginatedResponse<T>(
   pageSize: number,
   total?: number
 ) {
-  return { data, page, pageSize, total: total ?? 0 };
+  return { data, page, pageSize, total: total ?? undefined };
 }
 
 export function getNextPage(lastPage: PaginatedResponse<unknown>): number | undefined {

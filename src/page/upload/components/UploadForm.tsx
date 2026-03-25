@@ -7,7 +7,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import ArtInput from '@/components/ui/ArtInput';
 import ArtTextarea from '@/components/ui/ArtTextarea';
-import ArtButton from '@/components/ui/ArtButton';
+import ArtForm from '@/components/ui/ArtForm';
 import ArtSelect from '@/components/ui/ArtSelect';
 import ArtUpload from '@/components/ui/ArtUpload';
 import ArtProgress from '@/components/ui/ArtProgress';
@@ -79,9 +79,21 @@ export default function UploadForm({ loading = false }: { loading?: boolean }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+    <ArtForm
+      onSubmit={handleSubmit(onSubmit)}
+      buttons={[{ label: 'Upload', color: 'primary', type: 'submit', loading: createVideo.isPending }]}
+    >
+      {/* Title */}
+      <ArtInput
+        label="Title"
+        required
+        type="text"
+        placeholder="Give your video a title…"
+        helperText={errors.title?.message}
+        {...register('title')}
+      />
 
-      {/* ── Video upload ──────────────────────────────────────────────────── */}
+      {/* Upload Video */}
       <ArtUpload
         label="Video"
         required
@@ -89,21 +101,21 @@ export default function UploadForm({ loading = false }: { loading?: boolean }) {
         hint="MP4, WebM, MOV · max 500 MB"
         helperText={errors.videoFile?.message}
         {...register('videoFile')}
+      />      
+      
+      {/* Description */}
+      <ArtTextarea
+        label="Description"
+        placeholder="Tell viewers about your video…"
+        rows={6}
+        maxRows={6}
+        helperText={errors.description?.message}
+        {...register('description')}
       />
 
-      {/* ── Title + Thumbnail ─────────────────────────────────────────────── */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <ArtInput
-            label="Title"
-            required
-            type="text"
-            placeholder="Give your video a title…"
-            helperText={errors.title?.message}
-            {...register('title')}
-          />
-        </div>
-        <div className="w-52 shrink-0">
+      {/* ── Thumbnail / Age rating / Genres ──────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="row-span-2">
           <ArtUpload
             label="Thumbnail"
             accept="image/*"
@@ -112,48 +124,27 @@ export default function UploadForm({ loading = false }: { loading?: boolean }) {
             {...register('thumbnailFile')}
           />
         </div>
-      </div>
-
-      {/* ── Description ───────────────────────────────────────────────────── */}
-      <ArtTextarea
-        label="Description"
-        placeholder="Tell viewers about your video…"
-        maxRows={6}
-        helperText={errors.description?.message}
-        {...register('description')}
-      />
-
-      {/* ── Age rating + Genres ───────────────────────────────────────────── */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <ArtSelect
-            label="Age rating"
-            options={AGE_RATING_OPTIONS}
-            selected={AGE_RATING_OPTIONS.find((o) => o.value === ageRating)}
-            onChange={(opt: ArtSelectOption | null) => opt && setAgeRating(opt.value as AgeRating)}
-            placeholder="Age rating"
-          />
-        </div>
-        <div className="flex-1 flex flex-col">
-          <span className="art-label">Genres</span>
-          <GenreDialog selected={genreIds} onSelect={setGenreIds} />
-        </div>
+        <ArtSelect
+          label="Age rating"
+          options={AGE_RATING_OPTIONS}
+          selected={AGE_RATING_OPTIONS.find((o) => o.value === ageRating)}
+          onChange={(opt: ArtSelectOption | null) => opt && setAgeRating(opt.value as AgeRating)}
+          placeholder="Age rating"
+        />
+        <GenreDialog selected={genreIds} onSelect={setGenreIds} />
       </div>
 
       {/* ── Upload progress ───────────────────────────────────────────────── */}
-      {createVideo.isPending && (
+      {/* {createVideo.isPending && (
         <div className="flex flex-col gap-1.5">
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
             {uploadProgress < 100 ? `Uploading… ${uploadProgress}%` : 'Processing…'}
           </span>
           <ArtProgress value={uploadProgress} max={100} color="primary" />
         </div>
-      )}
+      )} */}
 
-      <ArtButton variant="default" color="primary" type="submit" loading={createVideo.isPending}>
-        Upload
-      </ArtButton>
-    </form>
+    </ArtForm>
   );
 }
 

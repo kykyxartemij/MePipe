@@ -38,7 +38,7 @@ export default function VideoGrid({ search = '' }: { search?: string }) {
     <>
       {isError && <p className="text-red-500 mt-4">Failed to load videos.</p>}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {isLoading
           ? Array.from({ length: SKELETON_COUNT }, (_, i) => <VideoCardSkeleton key={i} />)
           : videos.map((video: VideoLightModel) => <VideoCard key={video.id} video={video} />)}

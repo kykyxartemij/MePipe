@@ -11,7 +11,8 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { type ApiError } from '@/models/api-error';
-import ArtIcon, { type ArtIconName } from './ArtIcon';
+import { type ArtIconName } from './ArtIcon';
+import ArtTitle from './ArtTitle';
 import ArtIconButton from './ArtIconButton';
 import { type ArtColor, ART_COLOR_CLASS } from './art.types';
 import { cn } from './art.utils';
@@ -102,13 +103,7 @@ function SnackItemUI({
       onMouseEnter={() => onPause(item.id)}
       onMouseLeave={() => onResume(item.id)}
     >
-      {item.icon && <ArtIcon name={item.icon} size={36} className="art-snackbar-icon" />}
-      <div className="art-snackbar-body">
-        <span className="art-snackbar-title">{item.title}</span>
-        {item.description && (
-          <span className="art-snackbar-desc">{item.description}</span>
-        )}
-      </div>
+      <ArtTitle title={item.title} description={item.description} icon={item.icon} size="sm" />
       {item.count > 1 && (
         <span className="art-snackbar-count">×{item.count}</span>
       )}

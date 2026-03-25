@@ -64,7 +64,7 @@ export default function CommentSection({ videoId }: { videoId: string }) {
       ) : (
         <div className="space-y-2">
           {comments.map((c: CommentModel) => (
-            <div key={c.id} className="rounded-lg bg-muted px-3 py-2.5">
+            <div key={c.id} className="rounded-lg bg-(--surface) px-3 py-2.5">
               <div className="text-[11px] text-muted mb-1.5 tracking-wide">
                 {new Date(c.createdAt).toLocaleDateString('en-US', {
                   month: 'short',

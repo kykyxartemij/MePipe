@@ -21,17 +21,14 @@ export async function getPagedVideos(request: NextRequest) {
     const { page, pageSize } = await parsePaginationFromUrl(searchParams);
     const freeText = normalizeText(searchParams.get('freeText') ?? '');
 
-    const parsedId = freeText ? tryParseUuid(freeText) : null;
-    const where = parsedId
-      ? { id: parsedId }
-      : freeText
-      ? {
-          OR: [
-            { title: { contains: freeText, mode: 'insensitive' as const } },
-            { genres: { some: { name: { contains: freeText, mode: 'insensitive' as const } } } },
-          ],
-        }
-      : {};
+    const uuid = tryParseUuid(freeText);
+
+    const where = !freeText ? {} : uuid ? { id: uuid } : {
+      OR: [
+        { title: { contains: freeText, mode: 'insensitive' as const } },
+        { genres: { some: { name: { contains: freeText, mode: 'insensitive' as const } } } },
+      ],
+    };
 
     const videos = await cached(
       () =>

@@ -8,16 +8,29 @@
  *   3. Enable it in eslint.config.mjs under rules: { 'local/your-rule-name': 'warn' }
  */
 
-const noUncachedPrisma = require('./rules/no-uncached-prisma');
+const noUncachedPrisma         = require('./rules/no-uncached-prisma');
 const requireCacheKeysConstant = require('./rules/require-cache-keys-constant');
-const requireLinkPrefetch = require('./rules/require-link-prefetch');
-const requireLoadingPage = require('./rules/require-loading-page');
+const requireLinkPrefetch      = require('./rules/require-link-prefetch');
+const requireLoadingPage       = require('./rules/require-loading-page');
+const noDialogTriggerOnclick   = require('./rules/no-dialog-trigger-onclick');
+const requireApiTryCatch       = require('./rules/require-api-try-catch');
+const requireParseId           = require('./rules/require-parse-id');
+const requireQueryKeysConstant = require('./rules/require-query-keys-constant');
+const requireNormalizeText     = require('./rules/require-normalize-text');
 
 module.exports = {
   rules: {
-    'no-uncached-prisma': noUncachedPrisma,
+    // ==== BE ====
+    'no-uncached-prisma':          noUncachedPrisma,
     'require-cache-keys-constant': requireCacheKeysConstant,
-    'require-link-prefetch': requireLinkPrefetch,
-    'require-loading-page': requireLoadingPage,
+    'require-api-try-catch':       requireApiTryCatch,
+    'require-parse-id':            requireParseId,
+    'require-normalize-text':      requireNormalizeText,
+
+    // ==== FE ====
+    'require-link-prefetch':       requireLinkPrefetch,
+    'require-loading-page':        requireLoadingPage,
+    'no-dialog-trigger-onclick':   noDialogTriggerOnclick,
+    'require-query-keys-constant': requireQueryKeysConstant,
   },
 };

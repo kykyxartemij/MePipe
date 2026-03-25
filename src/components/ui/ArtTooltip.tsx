@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from './art.utils';
 
@@ -11,14 +11,25 @@ interface ArtTooltipProps {
 }
 
 const ArtTooltip = ({ label, children, className }: ArtTooltipProps) => {
-  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const wrapperRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
 
   const handleMouseEnter = () => {
-    if (wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect();
-      setCoords({ top: rect.top, left: rect.left + rect.width / 2 });
-    }
+    const tooltip = tooltipRef.current;
+    const wrapper = wrapperRef.current;
+    if (!tooltip || !wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
+    tooltip.style.top = `${rect.top}px`;
+    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+    tooltip.style.visibility = 'visible';
+    tooltip.style.opacity = '1';
+  };
+
+  const handleMouseLeave = () => {
+    const tooltip = tooltipRef.current;
+    if (!tooltip) return;
+    tooltip.style.visibility = 'hidden';
+    tooltip.style.opacity = '0';
   };
 
   return (
@@ -26,20 +37,19 @@ const ArtTooltip = ({ label, children, className }: ArtTooltipProps) => {
       ref={wrapperRef}
       className={cn('inline-flex', className)}
       onMouseEnter={handleMouseEnter}
-      onMouseLeave={() => setCoords(null)}
+      onMouseLeave={handleMouseLeave}
     >
       {children}
-      {coords && createPortal(
+      {createPortal(
         <span
+          ref={tooltipRef}
           className="art-tooltip"
           role="tooltip"
           style={{
             position: 'fixed',
-            top: coords.top,
-            left: coords.left,
-            bottom: 'auto',
+            visibility: 'hidden',
+            opacity: '0',
             transform: 'translate(-50%, calc(-100% - 6px))',
-            opacity: 1,
           }}
         >
           {label}

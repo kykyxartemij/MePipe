@@ -38,7 +38,7 @@ const ArtButton = forwardRef<HTMLButtonElement, ArtButtonProps>(
         {...rest}
       >
         {loading
-          ? <span className="art-btn-spinner" aria-hidden />
+          ? <ArtIcon name='Loading' size={ICON_SIZE[size]} />
           : icon && <ArtIcon name={icon} size={ICON_SIZE[size]} />}
         {children}
       </button>
