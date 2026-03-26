@@ -169,23 +169,34 @@ Custom reusable UI components prefixed with `Art`. All components:
 - Use CSS classes defined in `globals.css` (under `@layer components`)
 - Support `helperText` for validation error display
 
-| Component         | Purpose                                   | Key Props                                        |
-| ----------------- | ----------------------------------------- | ------------------------------------------------ |
-| `ArtButton`       | Button (default/outlined/ghost)           | `variant`, `color`, `size`, `icon`, `loading`    |
-| `ArtIconButton`   | Square icon-only button                   | `icon`, `tooltip`, `color`, `size`               |
-| `ArtIconToggle`   | Stateful icon toggle (like ArtIconButton) | `icon`, `pressedIcon`, `pressed`, `color`, `size`|
-| `ArtInput`        | Text input                                | `icon`, `clearable`, `helperText`, `debounce`    |
-| `ArtTextarea`     | Auto-growing textarea                     | `rows`, `maxRows`, `helperText`                  |
-| `ArtComboBox`     | Input + filtered dropdown                 | `options`, `selected`, `clearable`, `debounceMs` |
-| `ArtSelect`       | Pick-only dropdown (no search)            | `options`, `selected`, `onChange`                |
-| `ArtIcon`         | SVG icon by name                          | `name` (type-safe), `size`                       |
-| `ArtTooltip`      | Hover tooltip wrapper                     | `label`                                          |
-| `ArtBadge`        | Status/label badge                        | `variant`, `color`, `size`, `icon`               |
-| `ArtSlider`       | Range slider                              | `value`, `onChange`, `color`, `size`             |
-| `ArtProgress`     | Progress bar (display-only)               | `value`, `color`, `size`                         |
-| `ArtSkeleton`     | Shimmer loading placeholder               | `className` (Tailwind sizing)                    |
-| `ArtSnackbar`     | Toast notifications (Provider + hook)     | `useArtSnackbar()` — `enqueue`, `enqueueSuccess`, `enqueueError`, `close` |
-| `ArtDialog`       | Modal dialog (Provider + hook + trigger)  | `useArtDialog()` — `show`, `close`; `<ArtDialog>`, `<ArtConfirmDialog>` |
+| Component         | Purpose                                          | Key Props                                        |
+| ----------------- | ------------------------------------------------ | ------------------------------------------------ |
+| `ArtButton`       | Button (default/outlined/ghost)                  | `variant`, `color`, `size`, `icon`, `loading`    |
+| `ArtIconButton`   | Square icon-only button                          | `icon: ArtIconName`, `tooltip`, `color`, `size`  |
+| `ArtIconToggle`   | Stateful icon toggle (on/off)                    | `icon`, `pressedIcon` (both `ArtIconName`), `pressed`, `color`, `size` |
+| `ArtIconCycle`    | Cycles through N states on each click            | `options: { value, icon: ArtIconName, tooltip?, color? }[]`, `value`, `onChange` |
+| `ArtInput`        | Text input                                       | `icon`, `clearable`, `helperText`, `debounce`    |
+| `ArtTextarea`     | Auto-growing textarea                            | `rows`, `maxRows`, `helperText`                  |
+| `ArtComboBox`     | Input + filtered dropdown                        | `options`, `selected`, `clearable`, `debounceMs` |
+| `ArtSelect`       | Pick-only dropdown (no search)                   | `options`, `selected`, `onChange`                |
+| `ArtIcon`         | SVG icon by name                                 | `name: ArtIconName`, `size`                      |
+| `ArtTooltip`      | Hover tooltip wrapper                            | `label`                                          |
+| `ArtBadge`        | Status/label badge                               | `variant`, `color`, `size`, `icon`               |
+| `ArtSlider`       | Range slider                                     | `value`, `onChange`, `color`, `size`             |
+| `ArtProgress`     | Progress bar (display-only)                      | `value`, `color`, `size`                         |
+| `ArtSkeleton`     | Shimmer loading placeholder                      | `className` (Tailwind sizing)                    |
+| `ArtTitle`        | Page/section heading                             | `size` (`sm`/`md`/`lg`), `badge`, `actions`      |
+| `ArtForm`         | Form wrapper with submit handling                | `onSubmit`, `loading`                            |
+| `ArtMenu`         | Dropdown action menu                             | `items: ArtMenuItemDef[]`, `onSelect`, trigger (child) |
+| `ArtPopover`      | Floating panel anchored to a trigger             | `trigger`, `placement`                           |
+| `ArtTabs`         | Tab navigation                                   | `tabs: ArtTab[]`, `value`, `onChange`            |
+| `ArtRadio`        | Radio group                                      | `options`, `value`, `onChange`                   |
+| `ArtSwitch`       | Toggle switch                                    | `checked`, `onChange`, `color`                   |
+| `ArtPagination`   | Page number controls                             | `page`, `totalPages`, `onChange`                 |
+| `ArtDataTable`    | Table with sorting + empty state                 | `columns`, `rows`, `onSort`                      |
+| `ArtEmptyState`   | Empty/zero-data placeholder                      | `icon`, `title`, `description`, `action`         |
+| `ArtSnackbar`     | Toast notifications (Provider + hook)            | `useArtSnackbar()` — `enqueue`, `enqueueSuccess`, `enqueueError`, `close` |
+| `ArtDialog`       | Modal dialog (Provider + hook + trigger)         | `useArtDialog()` — `show`, `close`; `<ArtDialog>`, `<ArtConfirmDialog>` |
 
 ### How ArtInput Works (Example)
 
@@ -471,7 +482,7 @@ Art components have three layers of styling, applied in order:
 
 // Base: btn-ghost art-icon-btn
 // Override: opacity-50 dims the button in context
-<ArtIconButton icon={{ name: 'Close' }} className="opacity-50" />
+<ArtIconButton icon="Close" className="opacity-50" />
 ```
 
 All 13 components accept `className` and merge it at the root element. For `ArtInput` and `ArtTextarea`, `className` applies to the `<input>`/`<textarea>` itself — not the outer wrapper. Use the `color` prop for tinting and `className` for layout/spacing overrides that depend on the call site.
@@ -768,7 +779,7 @@ enqueueError(err, 'Upload failed');
 
 // 2. Pre-configured yes/no
 <ArtConfirmDialog title="Delete comment?" onConfirm={() => deleteComment(id)}>
-  <ArtIconButton icon={{ name: 'Close' }} tooltip="Delete" />
+  <ArtIconButton icon="Close" tooltip="Delete" />
 </ArtConfirmDialog>
 
 // 3. Imperative (from hooks, event handlers)
