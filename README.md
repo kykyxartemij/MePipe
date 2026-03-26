@@ -16,6 +16,23 @@ npm run dev
 
 Requires a `.env` with `DATABASE_URL` pointing to a Neon (or any Postgres) database.
 
+## Database
+
+```
+Genre              Video                                Comment
+─────              ─────────────────────                ───────────────────────
+id   (uuid, PK)   id              (uuid, PK)            id        (uuid, PK)
+name (unique)     title                                 text
+                  description                           createdAt
+Genre ←──────────→  genres  (M:M)                       videoId   (FK → Video)
+                  thumbnailUrl
+                  videoUrl
+                  durationSeconds
+                  publishedAt
+                  ageRating  (G_0 | G_12 | G_16 | G_18)
+                  comments  ──────────────────────────→ Comment (1:N, cascade delete)
+```
+
 ## Data flow
 
 ```
