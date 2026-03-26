@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import ArtIcon from '@/components/ui/ArtIcon';
 import ArtButton from '@/components/ui/ArtButton';
 import ArtIconButton from '@/components/ui/ArtIconButton';
+import ArtIconToggle from '@/components/ui/ArtIconToggle';
 import ArtSlider from '@/components/ui/ArtSlider';
 
 /* ─── helpers ─── */
@@ -41,9 +42,12 @@ function VolumeControl({ videoRef }: { videoRef: React.RefObject<HTMLVideoElemen
 
   return (
     <>
-      <ArtIconButton
-        icon={{ name: muted || volume === 0 ? 'VolumeMuted' : 'Volume', size: 20 }}
-        label={muted ? 'Unmute (m)' : 'Mute (m)'}
+      <ArtIconToggle
+        icon="Volume"
+        pressedIcon="VolumeMuted"
+        pressed={muted || volume === 0}
+        tooltip={muted ? 'Unmute (m)' : 'Mute (m)'}
+        size="lg"
         onClick={() => { if (videoRef.current) videoRef.current.muted = !videoRef.current.muted; }}
       />
       <ArtSlider value={muted ? 0 : volume} onChange={handleSlider} className="w-15" />
@@ -310,9 +314,12 @@ export default function VideoPlayer({ src, theaterMode, onToggleTheater }: Video
 
         {/* Row 2: playback controls */}
         <div className="flex items-center gap-2 px-2.5 pb-1.5">
-          <ArtIconButton
-            icon={{ name: playing ? 'Pause' : 'Play', size: 20 }}
-            label={playing ? 'Pause (k)' : 'Play (k)'}
+          <ArtIconToggle
+            icon="Play"
+            pressedIcon="Pause"
+            pressed={playing}
+            tooltip={playing ? 'Pause (k)' : 'Play (k)'}
+            size="lg"
             onClick={togglePlay}
           />
 
@@ -348,13 +355,17 @@ export default function VideoPlayer({ src, theaterMode, onToggleTheater }: Video
             </div>
 
             <ArtIconButton
-              icon={{ name: 'Theater', size: 20 }}
-              label="Theater mode (t)"
+              icon="Theater"
+              tooltip="Theater mode (t)"
+              size="lg"
               onClick={onToggleTheater}
             />
-            <ArtIconButton
-              icon={{ name: isFullscreen ? 'ExitFullscreen' : 'Fullscreen', size: 20 }}
-              label="Fullscreen (f)"
+            <ArtIconToggle
+              icon="Fullscreen"
+              pressedIcon="ExitFullscreen"
+              pressed={isFullscreen}
+              tooltip="Fullscreen (f)"
+              size="lg"
               onClick={toggleFullscreen}
             />
           </div>

@@ -61,11 +61,11 @@ export default function UploadForm({ loading = false }: { loading?: boolean }) {
     const formData = new FormData();
     formData.append('title', values.title);
     formData.append('description', values.description ?? '');
-    formData.append('video', (values.videoFile as FileList)[0]);
+    formData.append('videoFile', (values.videoFile as FileList)[0]);
     const thumb = (values.thumbnailFile as FileList | null)?.[0];
-    if (thumb) formData.append('thumbnail', thumb);
+    if (thumb) formData.append('thumbnailFile', thumb);
     formData.append('ageRating', ageRating);
-    formData.append('genres', JSON.stringify(genreIds));
+    genreIds.forEach((id) => formData.append('genreIds', id));
 
     setUploadProgress(0);
     createVideo.mutate(formData, {
@@ -135,14 +135,14 @@ export default function UploadForm({ loading = false }: { loading?: boolean }) {
       </div>
 
       {/* ── Upload progress ───────────────────────────────────────────────── */}
-      {/* {createVideo.isPending && (
+      {createVideo.isPending && (
         <div className="flex flex-col gap-1.5">
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
             {uploadProgress < 100 ? `Uploading… ${uploadProgress}%` : 'Processing…'}
           </span>
           <ArtProgress value={uploadProgress} max={100} color="primary" />
         </div>
-      )} */}
+      )}
 
     </ArtForm>
   );

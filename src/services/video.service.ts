@@ -14,6 +14,16 @@ import { cached, invalidateCache } from '@/lib/serverCache';
 import { CACHE_KEYS } from '@/lib/cacheKeys';
 import { ApiError } from '@/models/api-error';
 
+// ==== ffmpeg binaries ====
+// ffprobe-static and @ffmpeg-installer/ffmpeg bundle the ffmpeg/ffprobe executables
+// inside node_modules — no global install required, project stays self-contained.
+// Alternative: install ffmpeg globally and drop these four lines; fluent-ffmpeg
+// will find the binaries via PATH automatically.
+import ffprobeStatic from 'ffprobe-static';
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+ffmpeg.setFfprobePath(ffprobeStatic.path);
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+
 // ==== GET ALL (PAGED) ====
 export async function getPagedVideos(request: NextRequest) {
   try {

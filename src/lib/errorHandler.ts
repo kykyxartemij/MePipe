@@ -72,6 +72,10 @@ export function handleApiError(error: any, context: string) {
     return NextResponse.json({ error: message, code: error.code }, { status });
   }
 
-  // Default to 500
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  // Default to 500 — include message in dev so real causes are visible
+  const message =
+    process.env.NODE_ENV !== 'production' && error instanceof Error
+      ? error.message
+      : 'Internal server error';
+  return NextResponse.json({ error: message }, { status: 500 });
 }

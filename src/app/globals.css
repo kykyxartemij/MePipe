@@ -964,6 +964,7 @@ a:hover {
   .art-title--md .art-title-icon { margin-top: 0.5rem; }
   /* lg — standalone page / section heading */
   .art-title--lg { padding-top: 1rem; }
+  .art-title--lg               { padding-top: 1rem; }
   .art-title--lg .art-title-text { font-size: 1.125rem; }
   .art-title--lg .art-title-desc { @apply text-sm; }
   .art-title--lg .art-title-icon { margin-top: 0.3rem; }

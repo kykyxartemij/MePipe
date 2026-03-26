@@ -1,13 +1,13 @@
 import { forwardRef } from 'react';
 import ArtButton, { type ArtButtonProps } from './ArtButton';
-import ArtIcon, { type ArtIconProps } from './ArtIcon';
+import ArtIcon, { ArtIconName, type ArtIconProps } from './ArtIcon';
 import ArtTooltip from './ArtTooltip';
 import { type ButtonHTMLAttributes } from 'react';
 import { type ArtColor } from './art.types';
 import { cn } from './art.utils';
 
 interface ArtIconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  icon: ArtIconProps;
+  icon: ArtIconName;
   tooltip?: string;
   size?: ArtButtonProps['size'];
   color?: ArtColor;
@@ -30,7 +30,7 @@ const ArtIconButton = forwardRef<HTMLButtonElement, ArtIconButtonProps>(
         className={cn('art-icon-btn', className)}
         {...rest}
       >
-        <ArtIcon size={ICON_SIZE[size]} {...icon} />
+        <ArtIcon name={icon} size={ICON_SIZE[size]} />
       </ArtButton>
     );
 

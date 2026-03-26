@@ -240,42 +240,42 @@ function IconButtonSection() {
   return (
     <Section id="articonbutton" title="ArtIconButton">
       <Row label="ghost (default) — neutral">
-        <ArtIconButton icon={{ name: 'Play'   }} tooltip="Play"   />
-        <ArtIconButton icon={{ name: 'Like'   }} tooltip="Like"   />
-        <ArtIconButton icon={{ name: 'Upload' }} tooltip="Upload" />
-        <ArtIconButton icon={{ name: 'Close'  }} tooltip="Close"  />
-        <ArtIconButton icon={{ name: 'Search' }} tooltip="Search (disabled)" disabled />
-        <ArtIconButton icon={{ name: 'Volume' }} />
+        <ArtIconButton icon="Play"   tooltip="Play"   />
+        <ArtIconButton icon="Like"   tooltip="Like"   />
+        <ArtIconButton icon="Upload" tooltip="Upload" />
+        <ArtIconButton icon="Close"  tooltip="Close"  />
+        <ArtIconButton icon="Search" tooltip="Search (disabled)" disabled />
+        <ArtIconButton icon="Volume" />
       </Row>
       <Row label="ghost — color palette">
         {PALETTE.map((c) => (
-          <ArtIconButton key={c} icon={{ name: 'Upload' }} tooltip={c} color={c} />
+          <ArtIconButton key={c} icon="Upload" tooltip={c} color={c} />
         ))}
       </Row>
       <Row label="outlined — neutral + color">
-        <ArtIconButton icon={{ name: 'Play'   }} variant="outlined" tooltip="Play outlined" />
-        <ArtIconButton icon={{ name: 'Upload' }} variant="outlined" tooltip="Upload outlined" />
+        <ArtIconButton icon="Play"   variant="outlined" tooltip="Play outlined" />
+        <ArtIconButton icon="Upload" variant="outlined" tooltip="Upload outlined" />
         {PALETTE.map((c) => (
-          <ArtIconButton key={c} icon={{ name: 'Upload' }} variant="outlined" tooltip={c} color={c} />
+          <ArtIconButton key={c} icon="Upload" variant="outlined" tooltip={c} color={c} />
         ))}
       </Row>
       <Row label="default (filled) — neutral + color">
-        <ArtIconButton icon={{ name: 'Play'   }} variant="default" tooltip="Play filled" />
-        <ArtIconButton icon={{ name: 'Upload' }} variant="default" tooltip="Upload filled" />
+        <ArtIconButton icon="Play"   variant="default" tooltip="Play filled" />
+        <ArtIconButton icon="Upload" variant="default" tooltip="Upload filled" />
         {PALETTE.map((c) => (
-          <ArtIconButton key={c} icon={{ name: 'Upload' }} variant="default" tooltip={c} color={c} />
+          <ArtIconButton key={c} icon="Upload" variant="default" tooltip={c} color={c} />
         ))}
       </Row>
       <Row label="Sizes">
-        <ArtIconButton icon={{ name: 'Play' }} size="sm" tooltip="sm" />
-        <ArtIconButton icon={{ name: 'Play' }} size="md" tooltip="md" />
-        <ArtIconButton icon={{ name: 'Play' }} size="lg" tooltip="lg" />
+        <ArtIconButton icon="Play" size="sm" tooltip="sm" />
+        <ArtIconButton icon="Play" size="md" tooltip="md" />
+        <ArtIconButton icon="Play" size="lg" tooltip="lg" />
       </Row>
       <Code code={`
-<ArtIconButton icon={{ name: 'Play' }} tooltip="Play" />
-<ArtIconButton icon={{ name: 'Close' }} tooltip="Delete" color="danger" />
-<ArtIconButton icon={{ name: 'Upload' }} variant="outlined" color="primary" tooltip="Upload" />
-<ArtIconButton icon={{ name: 'Play' }} variant="default" color="success" tooltip="Live" />
+<ArtIconButton icon="Play" tooltip="Play" />
+<ArtIconButton icon="Close" tooltip="Delete" color="danger" />
+<ArtIconButton icon="Upload" variant="outlined" color="primary" tooltip="Upload" />
+<ArtIconButton icon="Play" variant="default" color="success" tooltip="Live" />
       `} />
     </Section>
   );
@@ -288,42 +288,37 @@ function IconToggleSection() {
     <Section id="articontoggle" title="ArtIconToggle"
       tip="Color only appears in the pressed/on state — off state is always neutral. This makes it unambiguous which state the button is in.">
       <Row label="ghost — outline icon off, filled icon + accent on">
-        <ArtIconToggle icon={{ name: 'Like'        }} pressedIcon={{ name: 'LikeFilled'    }} color="danger"  tooltip="Like"     />
-        <ArtIconToggle icon={{ name: 'Dislike'     }} pressedIcon={{ name: 'DislikeFilled' }} color="warning" tooltip="Dislike"  />
-        <ArtIconToggle icon={{ name: 'Volume'      }} pressedIcon={{ name: 'VolumeMuted'   }} color="primary" tooltip="Mute"     />
-        <ArtIconToggle icon={{ name: 'Play'        }} pressedIcon={{ name: 'Pause'         }} color="success" tooltip="Play"     defaultPressed />
-        <ArtIconToggle icon={{ name: 'Like'        }} disabled tooltip="Disabled off" />
-        <ArtIconToggle icon={{ name: 'LikeFilled'  }} disabled pressed color="danger" tooltip="Disabled on" />
+        <ArtIconToggle icon="Like"       pressedIcon="LikeFilled"    color="danger"  tooltip="Like"     />
+        <ArtIconToggle icon="Dislike"    pressedIcon="DislikeFilled" color="warning" tooltip="Dislike"  />
+        <ArtIconToggle icon="Volume"     pressedIcon="VolumeMuted"   color="primary" tooltip="Mute"     />
+        <ArtIconToggle icon="Play"       pressedIcon="Pause"         color="success" tooltip="Play"     defaultPressed />
+        <ArtIconToggle icon="Like"       disabled tooltip="Disabled off" />
+        <ArtIconToggle icon="LikeFilled" disabled pressed color="danger" tooltip="Disabled on" />
       </Row>
       <Row label="outlined — gray border off, accent border+fill on">
-        <ArtIconToggle icon={{ name: 'Like'    }} pressedIcon={{ name: 'LikeFilled'    }} variant="outlined" color="danger"  tooltip="Like"    />
-        <ArtIconToggle icon={{ name: 'Dislike' }} pressedIcon={{ name: 'DislikeFilled' }} variant="outlined" color="warning" tooltip="Dislike" defaultPressed />
-        <ArtIconToggle icon={{ name: 'Volume'  }} pressedIcon={{ name: 'VolumeMuted'   }} variant="outlined" color="primary" tooltip="Mute"    />
+        <ArtIconToggle icon="Like"    pressedIcon="LikeFilled"    variant="outlined" color="danger"  tooltip="Like"    />
+        <ArtIconToggle icon="Dislike" pressedIcon="DislikeFilled" variant="outlined" color="warning" tooltip="Dislike" defaultPressed />
+        <ArtIconToggle icon="Volume"  pressedIcon="VolumeMuted"   variant="outlined" color="primary" tooltip="Mute"    />
       </Row>
       <Row label="default — gray fill off, accent fill on">
-        <ArtIconToggle icon={{ name: 'Like'    }} pressedIcon={{ name: 'LikeFilled'    }} variant="default" color="danger"  tooltip="Like"    defaultPressed />
-        <ArtIconToggle icon={{ name: 'Dislike' }} pressedIcon={{ name: 'DislikeFilled' }} variant="default" color="warning" tooltip="Dislike" />
-        <ArtIconToggle icon={{ name: 'Volume'  }} pressedIcon={{ name: 'VolumeMuted'   }} variant="default" color="primary" tooltip="Mute"    />
+        <ArtIconToggle icon="Like"    pressedIcon="LikeFilled"    variant="default" color="danger"  tooltip="Like"    defaultPressed />
+        <ArtIconToggle icon="Dislike" pressedIcon="DislikeFilled" variant="default" color="warning" tooltip="Dislike" />
+        <ArtIconToggle icon="Volume"  pressedIcon="VolumeMuted"   variant="default" color="primary" tooltip="Mute"    />
       </Row>
       <Row label="Sizes">
-        <ArtIconToggle icon={{ name: 'Like' }} pressedIcon={{ name: 'LikeFilled' }} size="sm" color="danger" tooltip="sm" />
-        <ArtIconToggle icon={{ name: 'Like' }} pressedIcon={{ name: 'LikeFilled' }} size="md" color="danger" tooltip="md" defaultPressed />
-        <ArtIconToggle icon={{ name: 'Like' }} pressedIcon={{ name: 'LikeFilled' }} size="lg" color="danger" tooltip="lg" />
+        <ArtIconToggle icon="Like" pressedIcon="LikeFilled" size="sm" color="danger" tooltip="sm" />
+        <ArtIconToggle icon="Like" pressedIcon="LikeFilled" size="md" color="danger" tooltip="md" defaultPressed />
+        <ArtIconToggle icon="Like" pressedIcon="LikeFilled" size="lg" color="danger" tooltip="lg" />
       </Row>
       <Code code={`
 {/* Off: neutral icon. On: filled icon + accent color. */}
-<ArtIconToggle
-  icon={{ name: 'Like' }}
-  pressedIcon={{ name: 'LikeFilled' }}
-  color="danger"
-  tooltip="Like"
-/>
+<ArtIconToggle icon="Like" pressedIcon="LikeFilled" color="danger" tooltip="Like" />
 
 {/* outlined: gray border → accent border+fill */}
-<ArtIconToggle variant="outlined" icon={{ name: 'Like' }} pressedIcon={{ name: 'LikeFilled' }} color="danger" />
+<ArtIconToggle variant="outlined" icon="Like" pressedIcon="LikeFilled" color="danger" />
 
 {/* default: gray fill → accent fill */}
-<ArtIconToggle variant="default" icon={{ name: 'Like' }} pressedIcon={{ name: 'LikeFilled' }} color="danger" />
+<ArtIconToggle variant="default" icon="Like" pressedIcon="LikeFilled" color="danger" />
       `} />
     </Section>
   );
@@ -332,20 +327,20 @@ function IconToggleSection() {
 // ==== IconCycleSection ====
 
 const VISIBILITY_CYCLE_OPTIONS: ArtIconCycleOption[] = [
-  { value: 'public',   icon: { name: 'Play'  as const }, tooltip: 'Public',   color: 'success' },
-  { value: 'unlisted', icon: { name: 'Volume' as const }, tooltip: 'Unlisted', color: 'warning' },
-  { value: 'private',  icon: { name: 'Close'  as const }, tooltip: 'Private',  color: 'danger'  },
+  { value: 'public',   icon: 'Play',        tooltip: 'Public',   color: 'success' },
+  { value: 'unlisted', icon: 'Volume',      tooltip: 'Unlisted', color: 'warning' },
+  { value: 'private',  icon: 'Close',       tooltip: 'Private',  color: 'danger'  },
 ];
 
 const MUTE_OPTIONS: ArtIconCycleOption[] = [
-  { value: 'on',  icon: { name: 'Volume'      as const }, tooltip: 'Mute'   },
-  { value: 'off', icon: { name: 'VolumeMuted' as const }, tooltip: 'Unmute', color: 'danger' },
+  { value: 'on',  icon: 'Volume',      tooltip: 'Mute'   },
+  { value: 'off', icon: 'VolumeMuted', tooltip: 'Unmute', color: 'danger' },
 ];
 
 // Same color on every state — button looks identical, only icon/tooltip changes
 const PLAY_PAUSE_OPTIONS: ArtIconCycleOption[] = [
-  { value: 'playing', icon: { name: 'Pause' as const }, tooltip: 'Pause', color: 'primary' },
-  { value: 'paused',  icon: { name: 'Play'  as const }, tooltip: 'Play',  color: 'primary' },
+  { value: 'playing', icon: 'Pause', tooltip: 'Pause', color: 'primary' },
+  { value: 'paused',  icon: 'Play',  tooltip: 'Play',  color: 'primary' },
 ];
 
 function IconCycleSection() {
@@ -378,15 +373,15 @@ function IconCycleSection() {
 // Simple: same color every state — only icon/tooltip changes.
 // Button looks identical throughout — no "selected" feel.
 const playPauseOptions = [
-  { value: 'playing', icon: { name: 'Pause' }, tooltip: 'Pause', color: 'primary' },
-  { value: 'paused',  icon: { name: 'Play'  }, tooltip: 'Play',  color: 'primary' },
+  { value: 'playing', icon: 'Pause', tooltip: 'Pause', color: 'primary' },
+  { value: 'paused',  icon: 'Play',  tooltip: 'Play',  color: 'primary' },
 ];
 <ArtIconCycle options={playPauseOptions} defaultValue="paused" />
 
 // Advanced: each state has its own color.
 const muteOptions = [
-  { value: 'on',  icon: { name: 'Volume'      }, tooltip: 'Mute'   },
-  { value: 'off', icon: { name: 'VolumeMuted' }, tooltip: 'Unmute', color: 'danger' },
+  { value: 'on',  icon: 'Volume',      tooltip: 'Mute'   },
+  { value: 'off', icon: 'VolumeMuted', tooltip: 'Unmute', color: 'danger' },
 ];
 <ArtIconCycle options={muteOptions} value={muted} onChange={setMuted} />
       `} />
@@ -1705,7 +1700,7 @@ function MenuSection() {
       </Row>
       <Row label="Icon button trigger">
         <ArtMenu items={MENU_ITEMS} onSelect={(item) => console.log(item.value)}>
-          <ArtIconButton icon={{ name: 'ChevronDown' }} tooltip="More" />
+          <ArtIconButton icon="ChevronDown" tooltip="More" />
         </ArtMenu>
       </Row>
       <Code code={`

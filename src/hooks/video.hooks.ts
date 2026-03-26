@@ -4,7 +4,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { VideoLightModel, VideoModel } from '@/models/video.models';
 import { PaginatedResponse, getNextPage } from '@/models/paginated-response.model';
 import axios from '@/lib/axiosClient';
-import type { AxiosProgressEvent, AxiosRequestConfig  } from 'axios';
+import type { AxiosProgressEvent } from 'axios';
 import { ApiError } from '@/models/api-error';
 import { useArtSnackbar } from '@/components/ui/ArtSnackbar';
 
@@ -59,6 +59,7 @@ export const useCreateVideo = (callbacks?: { onUploadProgress?: (pct: number) =>
   return useMutation<VideoModel, ApiError, FormData>({
     mutationFn: async (formData: FormData) => {
       const res = await axios.post<VideoModel>(API.video.create(), formData, {
+        timeout: 0,
         onUploadProgress: (evt?: AxiosProgressEvent) => {
           const pct = evt?.total ? Math.round((evt.loaded / evt.total) * 100) : 0;
           callbacks?.onUploadProgress?.(pct);

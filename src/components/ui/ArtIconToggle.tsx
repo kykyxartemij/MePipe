@@ -2,16 +2,16 @@
 
 import { forwardRef, useState } from 'react';
 import ArtButton, { type ArtButtonProps } from './ArtButton';
-import ArtIcon, { type ArtIconProps } from './ArtIcon';
+import ArtIcon, { type ArtIconName } from './ArtIcon';
 import ArtTooltip from './ArtTooltip';
 import { type ButtonHTMLAttributes } from 'react';
 import { type ArtColor, ART_COLOR_CLASS } from './art.types';
 import { cn } from './art.utils';
 
 interface ArtIconToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
-  icon: ArtIconProps;
+  icon: ArtIconName;
   /** Icon to show when pressed — swap for filled/alternate variant (e.g. Volume → VolumeMuted) */
-  pressedIcon?: ArtIconProps;
+  pressedIcon?: ArtIconName;
   tooltip?: string;
   pressed?: boolean;
   defaultPressed?: boolean;
@@ -49,7 +49,7 @@ const ArtIconToggle = forwardRef<HTMLButtonElement, ArtIconToggleProps>(
         onClick={handleClick}
         {...rest}
       >
-        <ArtIcon size={ICON_SIZE[size]} {...(isPressed && pressedIcon ? pressedIcon : icon)} />
+        <ArtIcon size={ICON_SIZE[size]} name={isPressed && pressedIcon ? pressedIcon : icon} />
       </ArtButton>
     );
 

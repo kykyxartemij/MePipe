@@ -2,7 +2,7 @@
 
 import { forwardRef, useState } from 'react';
 import ArtButton, { type ArtButtonProps } from './ArtButton';
-import ArtIcon, { type ArtIconProps } from './ArtIcon';
+import ArtIcon, { type ArtIconName } from './ArtIcon';
 import ArtTooltip from './ArtTooltip';
 import { type ButtonHTMLAttributes } from 'react';
 import { type ArtColor, ART_COLOR_CLASS } from './art.types';
@@ -12,7 +12,7 @@ import { cn } from './art.utils';
 
 export interface ArtIconCycleOption<T extends string = string> {
   value: T;
-  icon: ArtIconProps;
+  icon: ArtIconName;
   tooltip?: string;
   color?: ArtColor;
 }
@@ -61,7 +61,7 @@ function ArtIconCycleInner<T extends string = string>(
       onClick={handleClick}
       {...rest}
     >
-      <ArtIcon size={ICON_SIZE[size]} {...opt.icon} />
+      <ArtIcon size={ICON_SIZE[size]} name={opt.icon} />
     </ArtButton>
   );
 
