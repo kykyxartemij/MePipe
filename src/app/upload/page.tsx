@@ -1,11 +1,16 @@
-import UploadForm from "@/components/UploadForm";
+import type { Metadata } from 'next';
+import UploadForm from '@/page/upload/components/UploadForm';
+import ArtTitle from '@/components/ui/ArtTitle';
+
+export const metadata: Metadata = { title: 'Upload' };
 
 export default function Page() {
   return (
-    <div style={{ maxWidth: 500 }}>
-      <h2 style={{ marginBottom: 16 }}>Upload Video</h2>
-      <UploadForm />
+    <div className="max-w-2xl mx-auto">
+      <ArtTitle size="lg" title="Upload Video" className="mb-6" />
+      <div className="bg-(--bg) border border-(--border) rounded-xl p-6">
+        <UploadForm />
+      </div>
     </div>
   );
 }
-

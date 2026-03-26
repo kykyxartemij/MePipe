@@ -1,26 +1,26 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import Navbar from "@/components/Navbar";
-import QueryProvider from "@/providers/QueryProvider";
+import type { Metadata } from 'next';
+import './globals.css';
+import Navbar from './Navbar';
+import QueryProvider from '@/providers/QueryProvider';
+import { ArtSnackbarProvider } from '@/components/ui/ArtSnackbar';
+import { ArtDialogProvider } from '@/components/ui/ArtDialog';
 
 export const metadata: Metadata = {
-  title: "MePipe",
-  description: "YouTube-like video platform",
+  title: { template: '%s | MePipe', default: 'MePipe' },
+  description: 'YouTube-like video platform',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         <QueryProvider>
-          <Navbar />
-          <main style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem" }}>
-            {children}
-          </main>
+          <ArtSnackbarProvider>
+          <ArtDialogProvider>
+            <Navbar />
+            <main className="px-6 py-4">{children}</main>
+          </ArtDialogProvider>
+          </ArtSnackbarProvider>
         </QueryProvider>
       </body>
     </html>

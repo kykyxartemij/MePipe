@@ -1,11 +1,10 @@
-import VideoGrid from "@/components/VideoGrid";
+import Homepage from '@/page/homepage/Homepage';
 
-export default function Page() {
-  return (
-    <div>
-      <h2 style={{ marginBottom: 16 }}>Videos</h2>
-      <VideoGrid />
-    </div>
-  );
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ freeText?: string }>;
+}) {
+  const params = await searchParams;
+  return <Homepage searchParams={params} />;
 }
-
